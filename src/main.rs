@@ -2,7 +2,8 @@ extern crate ggez;
 
 use ggez::{
     conf, event, graphics,
-    graphics::{Color, DrawParam, Font, Text},
+    graphics::{BlendMode, Color, DrawParam, Drawable, Font, Rect, Text},
+    mint::Point2,
     Context, ContextBuilder, GameResult,
 };
 
@@ -169,6 +170,23 @@ impl Board {
     }
 }
 
+impl Drawable for Board {
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
+        Ok(())
+    }
+
+    fn dimensions(&self, _: &mut Context) -> Option<Rect> {
+        Some(Rect::new_i32(0, 0, self.width as i32, self.height as i32))
+    }
+
+    fn set_blend_mode(&mut self, _: Option<BlendMode>) {
+    }
+
+    fn blend_mode(&self) -> Option<BlendMode> {
+        None
+    }
+}
+
 struct State {
     board: Board,
 }
@@ -189,9 +207,11 @@ impl event::EventHandler for State {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let title = Text::new(("Tetrominoes", font, 12.));
+        let board_param = DrawParam::new().dest(Point2 { x: 0., y: 100. });
 
         graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
+        graphics::draw(ctx, &self.board, board_param)?;
         graphics::present(ctx)
     }
 }
