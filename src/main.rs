@@ -234,7 +234,7 @@ impl Board {
     fn clear_rows(&mut self) -> i32 {
         let mut rows_cleared = 0;
         let mut row = self.height as i32 - 1;
-        while row >= 0 && rows_cleared < row {
+        while rows_cleared < row {
             let row_full = self.cells[row as usize].iter().all(Cell::is_full);
             if row_full {
                 rows_cleared += 1;
