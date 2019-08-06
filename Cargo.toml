@@ -1,0 +1,11 @@
+[package]
+name = "tetrominoes"
+version = "0.1.0"
+authors = ["Adam Vandolder <adam.vandolder@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ggez = "0.5.1"
+
+[profile.dev]
+opt-level = 1
