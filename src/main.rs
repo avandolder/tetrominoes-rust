@@ -225,7 +225,7 @@ impl Board {
 
 impl Drawable for Board {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE, BLOCK_SIZE);
+        let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
         let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, graphics::WHITE)?;
 
         for i in 0..self.height {
@@ -234,8 +234,8 @@ impl Drawable for Board {
                     Cell::Full(color) => {
                         let DrawParam { dest: Point2 { x: bx, y: by }, .. } = param;
                         let dest = Point2 {
-                            x: bx + (BLOCK_SIZE * (j as i32)) as f32,
-                            y: by + (BLOCK_SIZE * (i as i32)) as f32,
+                            x: bx + 1. + (BLOCK_SIZE * (j as i32)) as f32,
+                            y: by + 1. + (BLOCK_SIZE * (i as i32)) as f32,
                         };
                         let dp = DrawParam::new().dest(dest).color(color);
                         graphics::draw(ctx, &block_mesh, dp)?;
