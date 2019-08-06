@@ -139,19 +139,12 @@ static COLORS: [Color; 7] = [
 ];
 
 #[derive(Clone, Debug)]
-enum CellState {
+enum Cell {
     Empty,
-    Full,
+    Full(Color),
 }
 
-#[derive(Clone, Debug)]
-struct Cell {
-    row: usize,
-    column: usize,
-    state: CellState,
-}
-
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct Shape {
     row: usize,
     column: usize,
@@ -159,7 +152,34 @@ struct Shape {
     orientation: usize,
 }
 
-struct State {}
+#[derive(Debug)]
+struct Board {
+    width: usize,
+    height: usize,
+    cells: Vec<Vec<Cell>>,
+}
+
+impl Board {
+    fn new(width: usize, height: usize) -> Board {
+        Board {
+            width,
+            height,
+            cells: vec![vec![Cell::Empty; width]; height],
+        }
+    }
+}
+
+struct State {
+    board: Board,
+}
+
+impl State {
+    fn new() -> State {
+        State {
+            board: Board::new(10, 20),
+        }
+    }
+}
 
 impl event::EventHandler for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
@@ -177,7 +197,7 @@ impl event::EventHandler for State {
 }
 
 pub fn main() {
-    let state = &mut State {};
+    let state = &mut State::new();
 
     let c = conf::Conf::new();
     let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("tetrominoes", "ajv")
