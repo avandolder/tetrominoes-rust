@@ -183,15 +183,16 @@ impl Shape {
 impl Drawable for Shape {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-        let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, COLORS[self.model])?;
+        let block_mesh =
+            Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, COLORS[self.model])?;
+        let DrawParam { dest: offset, .. } = param;
 
         for i in 0..SHAPE_SIZE {
             for j in 0..SHAPE_SIZE {
                 if SHAPES[self.model][self.orientation][i][j] == 1 {
-                    let DrawParam { dest: Point2 { x: bx, y: by }, .. } = param;
                     let dest = Point2 {
-                        x: bx + 1. + (BLOCK_SIZE * (self.column + i) as i32) as f32,
-                        y: by + 1. + (BLOCK_SIZE * (self.row + j) as i32) as f32,
+                        x: offset.x + 1. + (BLOCK_SIZE * (self.column + i) as i32) as f32,
+                        y: offset.y + 1. + (BLOCK_SIZE * (self.row + j) as i32) as f32,
                     };
                     let dp = DrawParam::new().dest(dest);
                     graphics::draw(ctx, &block_mesh, dp)?;
@@ -269,14 +270,14 @@ impl Drawable for Board {
 
         let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
         let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, graphics::WHITE)?;
+        let DrawParam { dest: offset, .. } = param;
         for i in 0..self.height {
             for j in 0..self.width {
                 match self.cells[i][j] {
                     Cell::Full(color) => {
-                        let DrawParam { dest: Point2 { x: bx, y: by }, .. } = param;
                         let dest = Point2 {
-                            x: bx + 1. + (BLOCK_SIZE * (j as i32)) as f32,
-                            y: by + 1. + (BLOCK_SIZE * (i as i32)) as f32,
+                            x: offset.x + 1. + (BLOCK_SIZE * (j as i32)) as f32,
+                            y: offset.y + 1. + (BLOCK_SIZE * (i as i32)) as f32,
                         };
                         let dp = DrawParam::new().dest(dest).color(color);
                         graphics::draw(ctx, &block_mesh, dp)?;
