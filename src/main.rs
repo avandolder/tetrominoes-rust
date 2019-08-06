@@ -1,5 +1,8 @@
 extern crate ggez;
 
+use std::env;
+use std::path;
+
 use ggez::{
     conf, event, graphics,
     graphics::{BlendMode, Color, DrawMode, DrawParam, Drawable, Font, Mesh, Rect, Text},
@@ -236,14 +239,24 @@ impl event::EventHandler for State {
     }
 }
 
-pub fn main() {
+fn main() -> GameResult {
     let state = &mut State::new();
 
     let c = conf::Conf::new();
-    let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("tetrominoes", "ajv")
-        .conf(c)
-        .build()
-        .unwrap();
+    let mut cb = ContextBuilder::new("tetrominoes", "ajv").conf(c);
 
-    event::run(ctx, event_loop, state).unwrap();
+    // We add the CARGO_MANIFEST_DIR/resources to the filesystems paths so
+    // we look in the cargo project for files.
+    // Using a ContextBuilder is nice for this because it means that
+    // it will look for a conf.toml or icon file or such in
+    // this directory when the Context is created.
+    if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        let mut path = path::PathBuf::from(manifest_dir);
+        path.push("resources");
+        println!("Adding path {:?}", path);
+        cb = cb.add_resource_path(path);
+    }
+
+    let (ref mut ctx, ref mut event_loop) = cb.build()?;
+    event::run(ctx, event_loop, state)
 }
