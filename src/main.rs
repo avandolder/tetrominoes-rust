@@ -1,4 +1,5 @@
 extern crate ggez;
+extern crate rand;
 
 use std::env;
 use std::path;
@@ -9,6 +10,7 @@ use ggez::{
     mint::Point2,
     Context, ContextBuilder, GameResult,
 };
+use rand::{thread_rng, Rng};
 
 const BLOCK_SIZE: i32 = 16;
 const ORIENTATIONS: usize = 4;
@@ -156,6 +158,54 @@ struct Shape {
     orientation: usize,
 }
 
+impl Shape {
+    fn generate() -> Shape {
+        let mut rng = thread_rng();
+        Shape {
+            row: 0,
+            column: 0,
+            model: rng.gen_range(0, SHAPE_COUNT),
+            orientation: 0,
+        }
+    }
+}
+
+impl Drawable for Shape {
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
+        let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+        let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, COLORS[self.model])?;
+
+        for i in 0..SHAPE_SIZE {
+            for j in 0..SHAPE_SIZE {
+                if SHAPES[self.model][self.orientation][i][j] == 1 {
+                    print!("{},{}\t", i, j);
+                    let DrawParam { dest: Point2 { x: bx, y: by }, .. } = param;
+                    let dest = Point2 {
+                        x: bx + 1. + (BLOCK_SIZE * (self.column + i) as i32) as f32,
+                        y: by + 1. + (BLOCK_SIZE * (self.row + j) as i32) as f32,
+                    };
+                    let dp = DrawParam::new().dest(dest);
+                    graphics::draw(ctx, &block_mesh, dp)?;
+                }
+            }
+        }
+        println!("");
+
+        Ok(())
+    }
+
+    fn dimensions(&self, _: &mut Context) -> Option<Rect> {
+        None
+    }
+
+    fn set_blend_mode(&mut self, _: Option<BlendMode>) {
+    }
+
+    fn blend_mode(&self) -> Option<BlendMode> {
+        None
+    }
+}
+
 #[derive(Debug)]
 struct Board {
     width: usize,
@@ -212,12 +262,14 @@ impl Drawable for Board {
 
 struct State {
     board: Board,
+    shape: Shape,
 }
 
 impl State {
     fn new() -> State {
         State {
             board: Board::new(10, 20),
+            shape: Shape::generate(),
         }
     }
 }
@@ -235,6 +287,7 @@ impl event::EventHandler for State {
         graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
         graphics::draw(ctx, &self.board, board_param)?;
+        graphics::draw(ctx, &self.shape, board_param)?;
         graphics::present(ctx)
     }
 }
