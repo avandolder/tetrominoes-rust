@@ -178,7 +178,6 @@ impl Drawable for Shape {
         for i in 0..SHAPE_SIZE {
             for j in 0..SHAPE_SIZE {
                 if SHAPES[self.model][self.orientation][i][j] == 1 {
-                    print!("{},{}\t", i, j);
                     let DrawParam { dest: Point2 { x: bx, y: by }, .. } = param;
                     let dest = Point2 {
                         x: bx + 1. + (BLOCK_SIZE * (self.column + i) as i32) as f32,
@@ -189,7 +188,6 @@ impl Drawable for Shape {
                 }
             }
         }
-        println!("");
 
         Ok(())
     }
