@@ -225,9 +225,17 @@ impl Board {
 
 impl Drawable for Board {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
+        let border_rect = Rect::new_i32(
+            0, 0,
+            self.width as i32 * BLOCK_SIZE,
+            self.height as i32 * BLOCK_SIZE,
+        );
+        let border_mesh =
+            Mesh::new_rectangle(ctx, DrawMode::stroke(1.), border_rect, graphics::WHITE)?;
+        graphics::draw(ctx, &border_mesh, param)?;
+
         let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
         let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, graphics::WHITE)?;
-
         for i in 0..self.height {
             for j in 0..self.width {
                 match self.cells[i][j] {
@@ -282,7 +290,7 @@ impl event::EventHandler for State {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let title = Text::new(("Tetrominoes", font, 12.));
-        let board_param = DrawParam::new().dest(Point2 { x: 0., y: 100. });
+        let board_param = DrawParam::new().dest(Point2 { x: 1., y: 100. });
 
         graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
