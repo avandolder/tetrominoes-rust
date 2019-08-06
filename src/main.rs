@@ -1,4 +1,5 @@
 extern crate ggez;
+extern crate itertools;
 extern crate rand;
 
 use std::env;
@@ -150,6 +151,15 @@ enum Cell {
     Full(Color),
 }
 
+impl Cell {
+    fn is_full(&self) -> bool {
+        match self {
+            &Cell::Full(_) => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Shape {
     row: usize,
@@ -218,6 +228,31 @@ impl Board {
             height,
             cells: vec![vec![Cell::Empty; width]; height],
         }
+    }
+
+    fn clear_rows(&mut self) -> i32 {
+        let mut rows_cleared = 0;
+        let mut row = self.height as i32 - 1;
+        while row >= 0 && rows_cleared < row {
+            let row_full = self.cells[row as usize].iter().all(Cell::is_full);
+            if row_full {
+                rows_cleared += 1;
+            } else {
+                // Only decrement the row if the current one wasn't cleared; without this,
+                // sequential rows that were full wouldn't get cleared.
+                row -= 1;
+            }
+
+            if rows_cleared > 0 && rows_cleared <= row {
+                self.cells[row as usize] = self.cells[(row - rows_cleared) as usize].clone();
+            }
+        }
+
+        for i in 0..=row {
+            self.cells[i as usize] = vec![Cell::Empty; self.width];
+        }
+
+        rows_cleared
     }
 }
 
