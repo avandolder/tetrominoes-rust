@@ -178,6 +178,27 @@ impl Shape {
             orientation: 0,
         }
     }
+
+    fn has_block(&self, row: usize, column: usize) -> bool {
+        SHAPES[self.model][self.orientation][row][column] == 1
+    }
+
+    fn color(&self) -> Color {
+        COLORS[self.model]
+    }
+
+    fn for_each_block<F>(&self, mut f: F)
+    where
+        F: FnMut(usize, usize),
+    {
+        for i in 0..SHAPE_SIZE {
+            for j in 0..SHAPE_SIZE {
+                if self.has_block(i, j) {
+                    f(i, j);
+                }
+            }
+        }
+    }
 }
 
 impl Drawable for Shape {
@@ -254,6 +275,22 @@ impl Board {
         }
 
         rows_cleared
+    }
+
+    fn set_shape(&mut self, shape: &Shape) {
+        shape.for_each_block(|i, j| {
+            self.cells[shape.row + i][shape.column + j] = Cell::Full(shape.color());
+        });
+    }
+
+    fn collides(&self, shape: &Shape) -> bool {
+        let mut collides = false;
+        shape.for_each_block(|i, j| {
+            if self.cells[shape.row + i][shape.column + j].is_full() {
+                collides = true;
+            }
+        });
+        collides
     }
 }
 
