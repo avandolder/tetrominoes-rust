@@ -2,7 +2,7 @@ extern crate ggez;
 
 use ggez::{
     conf, event, graphics,
-    graphics::{BlendMode, Color, DrawParam, Drawable, Font, Rect, Text},
+    graphics::{BlendMode, Color, DrawMode, DrawParam, Drawable, Font, Mesh, Rect, Text},
     mint::Point2,
     Context, ContextBuilder, GameResult,
 };
@@ -171,7 +171,27 @@ impl Board {
 }
 
 impl Drawable for Board {
-    fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult<()> {
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
+        let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE, BLOCK_SIZE);
+        let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, graphics::WHITE)?;
+
+        for i in 0..self.height {
+            for j in 0..self.width {
+                match self.cells[i][j] {
+                    Cell::Full(color) => {
+                        let DrawParam { dest: Point2 { x: bx, y: by }, .. } = param;
+                        let dest = Point2 {
+                            x: bx + (BLOCK_SIZE * (j as i32)) as f32,
+                            y: by + (BLOCK_SIZE * (i as i32)) as f32,
+                        };
+                        let dp = DrawParam::new().dest(dest).color(color);
+                        graphics::draw(ctx, &block_mesh, dp)?;
+                    },
+                    Cell::Empty => {},
+                }
+            }
+        }
+
         Ok(())
     }
 
