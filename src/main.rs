@@ -136,13 +136,13 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
 ];
 
 static COLORS: [Color; 7] = [
-    Color::new(1., 0.5, 0., 1.), // Orange
-    Color::new(0., 0., 1., 1.), // Blue
-    Color::new(1., 0., 1., 1.), // Purple
-    Color::new(0., 1., 1., 1.), // Aqua
-    Color::new(1., 0., 0., 1.), // Red
-    Color::new(0., 1., 0., 1.), // Green
-    Color::new(1., 1., 0., 1.), // Yellow
+    Color::new(1., 0.5, 0., 1.), // Orange (L)
+    Color::new(0., 0., 1., 1.), // Blue (J)
+    Color::new(1., 0., 1., 1.), // Purple (T)
+    Color::new(0., 1., 1., 1.), // Aqua (I)
+    Color::new(1., 0., 0., 1.), // Red (Z)
+    Color::new(0., 1., 0., 1.), // Green (S)
+    Color::new(1., 1., 0., 1.), // Yellow (O)
 ];
 
 #[derive(Clone, Debug)]
