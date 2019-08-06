@@ -210,7 +210,7 @@ impl Drawable for Shape {
 
         for i in 0..SHAPE_SIZE {
             for j in 0..SHAPE_SIZE {
-                if SHAPES[self.model][self.orientation][i][j] == 1 {
+                if self.has_block(j, i) {
                     let dest = Point2 {
                         x: offset.x + 1. + (BLOCK_SIZE * (self.column + i) as i32) as f32,
                         y: offset.y + 1. + (BLOCK_SIZE * (self.row + j) as i32) as f32,
