@@ -210,6 +210,15 @@ impl Shape {
         self.column += amt;
         self
     }
+
+    fn rotate(&mut self, amt: i32) {
+        let new_orientation = self.orientation as i32 + amt;
+        if new_orientation < 0 {
+            self.orientation = (ORIENTATIONS as i32 + new_orientation) as usize;
+        } else {
+            self.orientation = (new_orientation as usize) % ORIENTATIONS;
+        }
+    }
 }
 
 impl Drawable for Shape {
@@ -375,6 +384,18 @@ impl State {
             key_dt: KEY_WAIT,
         }
     }
+
+    fn rotate_shape(&mut self) {
+        let mut new_shape = self.shape.clone();
+        new_shape.rotate(1);
+        for _ in 0..SHAPE_SIZE {
+            if !self.board.collides(&new_shape) {
+                self.shape = new_shape;
+                break;
+            }
+            new_shape = new_shape.shift(-1);
+        }
+    }
 }
 
 impl event::EventHandler for State {
@@ -411,6 +432,11 @@ impl event::EventHandler for State {
             } else if keyboard::is_key_pressed(ctx, KeyCode::Right) &&
                     !self.board.collides(&self.shape.clone().shift(1)) {
                 self.shape.column += 1;
+                self.key_dt = 0.;
+            }
+
+            if keyboard::is_key_pressed(ctx, KeyCode::Up) {
+                self.rotate_shape();
                 self.key_dt = 0.;
             }
         }
