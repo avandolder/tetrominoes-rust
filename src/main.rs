@@ -141,9 +141,11 @@ impl Piece {
         }
     }
 
-    fn shift(mut self, amt: i32) -> Self {
-        self.column += amt;
-        self
+    fn shift(self, amt: i32) -> Self {
+        Piece {
+            column: self.column + amt,
+            ..self
+        }
     }
 
     fn rotate(&mut self, amt: i32) {
@@ -155,10 +157,12 @@ impl Piece {
         }
     }
 
-    fn prepare(mut self) -> Self {
-        self.row = -2;
-        self.column = (BOARD_WIDTH / 2 - PIECE_SIZE / 2) as i32;
-        self
+    fn prepare(self) -> Self {
+        Piece {
+            row: -2,
+            column: (BOARD_WIDTH / 2 - PIECE_SIZE / 2) as i32,
+            ..self
+        }
     }
 }
 
