@@ -6,7 +6,7 @@ use std::env;
 use std::path;
 
 use ggez::{
-    conf, event, graphics,
+    event, graphics,
     graphics::{BlendMode, Color, DrawMode, DrawParam, Drawable, Font, Mesh, Rect, Text},
     input::{keyboard, keyboard::KeyCode},
     mint::Point2,
@@ -213,15 +213,27 @@ struct Board {
     width: usize,
     height: usize,
     cells: Vec<Vec<Cell>>,
+    block_mesh: Mesh,
+    border_mesh: Mesh,
 }
 
 impl Board {
-    fn new(width: usize, height: usize) -> Board {
-        Board {
+    fn new(ctx: &mut Context, width: usize, height: usize) -> GameResult<Board> {
+        let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+        let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, graphics::WHITE)?;
+
+        let border_rect =
+            Rect::new_i32(0, 0, width as i32 * BLOCK_SIZE, height as i32 * BLOCK_SIZE);
+        let border_mesh =
+            Mesh::new_rectangle(ctx, DrawMode::stroke(1.), border_rect, graphics::WHITE)?;
+
+        Ok(Board {
             width,
             height,
             cells: vec![vec![Cell::Empty; width]; height],
-        }
+            block_mesh,
+            border_mesh,
+        })
     }
 
     fn clear_rows(&mut self) -> i32 {
@@ -280,18 +292,8 @@ impl Board {
 
 impl Drawable for Board {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
-        let border_rect = Rect::new_i32(
-            0,
-            0,
-            self.width as i32 * BLOCK_SIZE,
-            self.height as i32 * BLOCK_SIZE,
-        );
-        let border_mesh =
-            Mesh::new_rectangle(ctx, DrawMode::stroke(1.), border_rect, graphics::WHITE)?;
-        graphics::draw(ctx, &border_mesh, param)?;
+        graphics::draw(ctx, &self.border_mesh, param)?;
 
-        let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-        let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, graphics::WHITE)?;
         let DrawParam { dest: offset, .. } = param;
         for i in 0..self.height {
             for j in 0..self.width {
@@ -302,7 +304,7 @@ impl Drawable for Board {
                             y: offset.y + 1. + (BLOCK_SIZE * (i as i32)) as f32,
                         };
                         let dp = DrawParam::new().dest(dest).color(color);
-                        graphics::draw(ctx, &block_mesh, dp)?;
+                        graphics::draw(ctx, &self.block_mesh, dp)?;
                     }
                     Cell::Empty => {}
                 }
@@ -334,20 +336,20 @@ struct State {
 }
 
 impl State {
-    fn new() -> State {
+    fn new(ctx: &mut Context) -> GameResult<State> {
         let mut piece_bag = generate_pieces();
         let piece = piece_bag.pop().unwrap().prepare();
         let ghost = make_ghost(&piece);
 
-        State {
-            board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
+        Ok(State {
+            board: Board::new(ctx, BOARD_WIDTH, BOARD_HEIGHT)?,
             piece,
             piece_bag,
             ghost,
             move_dt: 0.,
             key_dt: KEY_WAIT,
             score: 0,
-        }
+        })
     }
 
     fn rotate_piece(&mut self) {
@@ -460,18 +462,15 @@ impl event::EventHandler for State {
 }
 
 fn main() -> GameResult {
-    let state = &mut State::new();
+    let resource_path = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        path::PathBuf::from(manifest_dir).join("resources")
+    } else {
+        path::PathBuf::from("./resources")
+    };
 
-    let c = conf::Conf::new();
-    let mut cb = ContextBuilder::new("tetrominoes", "ajv").conf(c);
+    let cb = ContextBuilder::new("tetrominoes", "ajv").add_resource_path(resource_path);
 
-    // We add the CARGO_MANIFEST_DIR/resources to the filesystems paths so
-    // we look in the cargo project for files.
-    if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-        let path = path::PathBuf::from(manifest_dir).join("resources");
-        cb = cb.add_resource_path(path);
-    }
-
-    let (ref mut ctx, ref mut event_loop) = cb.build()?;
+    let (ctx, event_loop) = &mut cb.build()?;
+    let state = &mut State::new(ctx)?;
     event::run(ctx, event_loop, state)
 }
