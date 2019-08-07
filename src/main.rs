@@ -4,11 +4,11 @@ extern crate rand;
 
 use std::env;
 use std::path;
-use std::time::Duration;
 
 use ggez::{
     conf, event, graphics, timer,
     graphics::{BlendMode, Color, DrawMode, DrawParam, Drawable, Font, Mesh, Rect, Text},
+    input::{keyboard, keyboard::KeyCode},
     mint::Point2,
     Context, ContextBuilder, GameResult,
 };
@@ -18,6 +18,7 @@ const BLOCK_SIZE: i32 = 16;
 const BOARD_HEIGHT: usize = 20;
 const BOARD_WIDTH: usize = 10;
 const MOVE_WAIT: f64 = 0.75;
+const MOVE_WAIT_FAST: f64 = 0.05;
 const ORIENTATIONS: usize = 4;
 const SHAPE_COUNT: usize = 7;
 const SHAPE_SIZE: usize = 4;
@@ -176,7 +177,7 @@ impl Shape {
     fn generate() -> Shape {
         let mut rng = thread_rng();
         Shape {
-            row: 0,
+            row: -2,
             column: 0,
             model: rng.gen_range(0, SHAPE_COUNT),
             orientation: 0,
@@ -291,7 +292,6 @@ impl Board {
 
     fn collides(&self, shape: &Shape) -> bool {
         let mut collides = false;
-        let row = shape.row as usize;
         let column = shape.column as usize;
         shape.for_each_block(|i, j| {
             if shape.row + (i as i32) < 0 {
@@ -300,8 +300,8 @@ impl Board {
 
             if shape.column + (j as i32) < 0 ||
                     column + j >= self.width ||
-                    row + i >= self.height ||
-                    self.cells[row + i][column + j].is_full() {
+                    shape.row + (i as i32) >= self.height as i32 ||
+                    self.cells[(shape.row + (i as i32)) as usize][column + j].is_full() {
                 collides = true;
             }
         });
@@ -373,11 +373,18 @@ impl State {
 impl event::EventHandler for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         self.move_dt += timer::duration_to_f64(timer::delta(ctx));
-        if self.move_dt >= MOVE_WAIT {
+        if self.move_dt >= MOVE_WAIT || (
+                keyboard::is_key_pressed(ctx, KeyCode::Down) &&
+                self.move_dt >= MOVE_WAIT_FAST) {
             self.shape.row += 1;
 
             if self.board.collides(&self.shape) {
                 self.shape.row -= 1;
+                if self.shape.row < 0 {
+                    println!("Game over!");
+                    std::process::exit(0);
+                }
+
                 self.board.set_shape(&self.shape);
                 self.board.clear_rows();
                 self.shape = Shape::generate();
