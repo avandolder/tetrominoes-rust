@@ -360,6 +360,7 @@ impl Drawable for Board {
 struct State {
     board: Board,
     shape: Shape,
+    next_shape: Shape,
     move_dt: f64,
     key_dt: f64,
 }
@@ -369,6 +370,7 @@ impl State {
         State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
             shape: Shape::generate(),
+            next_shape: Shape::generate(),
             move_dt: 0.,
             key_dt: KEY_WAIT,
         }
@@ -393,7 +395,8 @@ impl event::EventHandler for State {
 
                 self.board.set_shape(&self.shape);
                 self.board.clear_rows();
-                self.shape = Shape::generate();
+                self.shape = self.next_shape.clone();
+                self.next_shape = Shape::generate();
             }
 
             self.move_dt = 0.;
@@ -418,12 +421,17 @@ impl event::EventHandler for State {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let title = Text::new(("Tetrominoes", font, 12.));
-        let board_param = DrawParam::new().dest(Point2 { x: 1., y: 100. });
+        let next_msg = Text::new(("Next Shape", font, 12.));
+        let next_msg_dp = DrawParam::new().dest(Point2 { x: 0., y: 100. });
+        let next_shape_dp = DrawParam::new().dest(Point2 { x: 0., y: 160. });
+        let board_dp = DrawParam::new().dest(Point2 { x: 100., y: 100. });
 
         graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
-        graphics::draw(ctx, &self.board, board_param)?;
-        graphics::draw(ctx, &self.shape, board_param)?;
+        graphics::draw(ctx, &next_msg, next_msg_dp)?;
+        graphics::draw(ctx, &self.next_shape, next_shape_dp)?;
+        graphics::draw(ctx, &self.board, board_dp)?;
+        graphics::draw(ctx, &self.shape, board_dp)?;
         graphics::present(ctx)
     }
 }
