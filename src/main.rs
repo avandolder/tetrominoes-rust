@@ -294,16 +294,17 @@ impl Board {
 
     fn collides(&self, shape: &Shape) -> bool {
         let mut collides = false;
-        let column = shape.column as usize;
         shape.for_each_block(|i, j| {
             if shape.row + (i as i32) < 0 {
                 return;
             }
 
-            if shape.column + (j as i32) < 0 ||
-                    column + j >= self.width ||
-                    shape.row + (i as i32) >= self.height as i32 ||
-                    self.cells[(shape.row + (i as i32)) as usize][column + j].is_full() {
+            if shape.column + (j as i32) < 0
+                || shape.column + (j as i32) >= self.width as i32
+                || shape.row + (i as i32) >= self.height as i32
+                || self.cells[(shape.row + (i as i32)) as usize]
+                    [(shape.column + (j as i32)) as usize]
+                    .is_full() {
                 collides = true;
             }
         });
