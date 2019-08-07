@@ -432,6 +432,11 @@ impl State {
     }
 
     fn set_piece(&mut self) {
+        if self.piece.row < 0 {
+            println!("Game over!");
+            std::process::exit(0);
+        }
+
         self.board.set_piece(&self.piece);
         self.score += self.board.clear_rows().pow(2);
         self.piece = self.piece_bag.pop().unwrap().prepare();
@@ -452,11 +457,6 @@ impl event::EventHandler for State {
 
             if self.board.collides(&self.piece) {
                 self.piece.row -= 1;
-                if self.piece.row < 0 {
-                    println!("Game over!");
-                    std::process::exit(0);
-                }
-
                 self.set_piece();
             }
 
