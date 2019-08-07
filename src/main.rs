@@ -396,7 +396,7 @@ impl State {
 }
 
 impl event::EventHandler for State {
-    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
         let dt = timer::duration_to_f64(timer::delta(ctx));
         self.move_dt += dt;
         if self.move_dt >= MOVE_WAIT
@@ -443,7 +443,7 @@ impl event::EventHandler for State {
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+    fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let title = Text::new(("Tetrominoes", font, 12.));
         let next = Text::new(("Next Piece", font, 12.));
