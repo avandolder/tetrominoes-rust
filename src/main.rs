@@ -4,9 +4,10 @@ extern crate rand;
 
 use std::env;
 use std::path;
+use std::time::Duration;
 
 use ggez::{
-    conf, event, graphics,
+    conf, event, graphics, timer,
     graphics::{BlendMode, Color, DrawMode, DrawParam, Drawable, Font, Mesh, Rect, Text},
     mint::Point2,
     Context, ContextBuilder, GameResult,
@@ -14,6 +15,9 @@ use ggez::{
 use rand::{thread_rng, Rng};
 
 const BLOCK_SIZE: i32 = 16;
+const BOARD_HEIGHT: usize = 20;
+const BOARD_WIDTH: usize = 10;
+const MOVE_WAIT: f64 = 0.75;
 const ORIENTATIONS: usize = 4;
 const SHAPE_COUNT: usize = 7;
 const SHAPE_SIZE: usize = 4;
@@ -162,8 +166,8 @@ impl Cell {
 
 #[derive(Debug)]
 struct Shape {
-    row: usize,
-    column: usize,
+    row: i32,
+    column: i32,
     model: usize,
     orientation: usize,
 }
@@ -212,8 +216,8 @@ impl Drawable for Shape {
             for j in 0..SHAPE_SIZE {
                 if self.has_block(j, i) {
                     let dest = Point2 {
-                        x: offset.x + 1. + (BLOCK_SIZE * (self.column + i) as i32) as f32,
-                        y: offset.y + 1. + (BLOCK_SIZE * (self.row + j) as i32) as f32,
+                        x: offset.x + 1. + (BLOCK_SIZE * (self.column + i as i32)) as f32,
+                        y: offset.y + 1. + (BLOCK_SIZE * (self.row + j as i32)) as f32,
                     };
                     let dp = DrawParam::new().dest(dest);
                     graphics::draw(ctx, &block_mesh, dp)?;
@@ -278,15 +282,26 @@ impl Board {
     }
 
     fn set_shape(&mut self, shape: &Shape) {
+        let row = shape.row as usize;
+        let column = shape.column as usize;
         shape.for_each_block(|i, j| {
-            self.cells[shape.row + i][shape.column + j] = Cell::Full(shape.color());
+            self.cells[row + i][column + j] = Cell::Full(shape.color());
         });
     }
 
     fn collides(&self, shape: &Shape) -> bool {
         let mut collides = false;
+        let row = shape.row as usize;
+        let column = shape.column as usize;
         shape.for_each_block(|i, j| {
-            if self.cells[shape.row + i][shape.column + j].is_full() {
+            if shape.row + (i as i32) < 0 {
+                return;
+            }
+
+            if shape.column + (j as i32) < 0 ||
+                    column + j >= self.width ||
+                    row + i >= self.height ||
+                    self.cells[row + i][column + j].is_full() {
                 collides = true;
             }
         });
@@ -342,19 +357,35 @@ impl Drawable for Board {
 struct State {
     board: Board,
     shape: Shape,
+    move_dt: f64,
 }
 
 impl State {
     fn new() -> State {
         State {
-            board: Board::new(10, 20),
+            board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
             shape: Shape::generate(),
+            move_dt: 0.,
         }
     }
 }
 
 impl event::EventHandler for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        self.move_dt += timer::duration_to_f64(timer::delta(ctx));
+        if self.move_dt >= MOVE_WAIT {
+            self.shape.row += 1;
+
+            if self.board.collides(&self.shape) {
+                self.shape.row -= 1;
+                self.board.set_shape(&self.shape);
+                self.board.clear_rows();
+                self.shape = Shape::generate();
+            }
+
+            self.move_dt = 0.;
+        }
+
         Ok(())
     }
 
