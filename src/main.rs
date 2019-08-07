@@ -27,11 +27,7 @@ const PIECE_SIZE: usize = 4;
 // PIECE contains all of the possible pieces in all of their
 // possible orientations.
 static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
-  [[[1, 0, 0, 0], // L piece
-    [1, 0, 0, 0],
-    [1, 1, 0, 0],
-    [0, 0, 0, 0]],
-   [[0, 0, 1, 0],
+  [[[0, 0, 1, 0], // L piece
     [1, 1, 1, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
@@ -42,8 +38,16 @@ static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
    [[1, 1, 1, 0],
     [1, 0, 0, 0],
     [0, 0, 0, 0],
+    [0, 0, 0, 0]],
+   [[1, 0, 0, 0],
+    [1, 0, 0, 0],
+    [1, 1, 0, 0],
     [0, 0, 0, 0]]],
-  [[[0, 1, 0, 0], // J piece
+  [[[1, 0, 0, 0], // J piece
+    [1, 1, 1, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]],
+   [[0, 1, 0, 0],
     [0, 1, 0, 0],
     [1, 1, 0, 0],
     [0, 0, 0, 0]],
@@ -54,28 +58,28 @@ static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
    [[1, 1, 0, 0],
     [1, 0, 0, 0],
     [1, 0, 0, 0],
-    [0, 0, 0, 0]],
-   [[1, 0, 0, 0],
+    [0, 0, 0, 0]]],
+  [[[0, 1, 0, 0], // T piece
     [1, 1, 1, 0],
     [0, 0, 0, 0],
-    [0, 0, 0, 0]]],
-  [[[1, 1, 1, 0], // T piece
+    [0, 0, 0, 0]],
+   [[0, 1, 0, 0],
+    [1, 1, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 0]],
+   [[1, 1, 1, 0],
     [0, 1, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
    [[1, 0, 0, 0],
     [1, 1, 0, 0],
     [1, 0, 0, 0],
-    [0, 0, 0, 0]],
-   [[0, 1, 0, 0],
-    [1, 1, 1, 0],
+    [0, 0, 0, 0]]],
+  [[[1, 1, 1, 1], // I piece
+    [0, 0, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
-   [[0, 1, 0, 0],
-    [1, 1, 0, 0],
-    [0, 1, 0, 0],
-    [0, 0, 0, 0]]],
-  [[[1, 0, 0, 0], // I piece
+   [[1, 0, 0, 0],
     [1, 0, 0, 0],
     [1, 0, 0, 0],
     [1, 0, 0, 0]],
@@ -86,11 +90,7 @@ static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
    [[1, 0, 0, 0],
     [1, 0, 0, 0],
     [1, 0, 0, 0],
-    [1, 0, 0, 0]],
-   [[1, 1, 1, 1],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]]],
+    [1, 0, 0, 0]]],
   [[[1, 1, 0, 0], // Z piece
     [0, 1, 1, 0],
     [0, 0, 0, 0],
@@ -177,7 +177,7 @@ struct Piece {
 impl Piece {
     fn new(shape: usize) -> Piece {
         Piece {
-            row: -2,
+            row: 0,
             column: 0,
             shape,
             orientation: 0,
@@ -217,6 +217,12 @@ impl Piece {
         } else {
             self.orientation = (new_orientation as usize) % ORIENTATIONS;
         }
+    }
+
+    fn prepare(mut self) -> Self {
+        self.row = -2;
+        self.column = (BOARD_WIDTH / 2 - PIECE_SIZE / 2) as i32;
+        self
     }
 }
 
@@ -384,7 +390,8 @@ struct State {
 impl State {
     fn new() -> State {
         let mut piece_bag = generate_pieces();
-        let piece = piece_bag.pop().unwrap();
+        let piece = piece_bag.pop().unwrap().prepare();
+        
         State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
             piece,
@@ -426,7 +433,7 @@ impl event::EventHandler for State {
 
                 self.board.set_piece(&self.piece);
                 self.score += self.board.clear_rows().pow(2);
-                self.piece = self.piece_bag.pop().unwrap();
+                self.piece = self.piece_bag.pop().unwrap().prepare();
                 if self.piece_bag.is_empty() {
                     self.piece_bag = generate_pieces();
                 }
@@ -463,7 +470,7 @@ impl event::EventHandler for State {
         let next_dp = DrawParam::new().dest(Point2 { x: 0., y: 100. });
         let score = Text::new((format!("Score: {}", self.score), font, 12.));
         let score_dp = DrawParam::new().dest(Point2 { x: 0., y: 50. });
-        let next_piece_dp = DrawParam::new().dest(Point2 { x: 0., y: 160. });
+        let next_piece_dp = DrawParam::new().dest(Point2 { x: 0., y: 120. });
         let board_dp = DrawParam::new().dest(Point2 { x: 100., y: 100. });
 
         graphics::clear(ctx, graphics::BLACK);
