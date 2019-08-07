@@ -19,7 +19,7 @@ const BOARD_HEIGHT: usize = 20;
 const BOARD_WIDTH: usize = 10;
 const KEY_WAIT: f64 = 0.2;
 const MOVE_WAIT: f64 = 0.75;
-const MOVE_WAIT_FAST: f64 = 0.05;
+const FAST_MOVE_WAIT: f64 = 0.05;
 const ORIENTATIONS: usize = 4;
 const PIECES: usize = 7;
 const PIECE_SIZE: usize = 4;
@@ -453,7 +453,7 @@ impl event::EventHandler for State {
         let dt = timer::duration_to_f64(timer::delta(ctx));
         self.move_dt += dt;
         if self.move_dt >= MOVE_WAIT
-            || (keyboard::is_key_pressed(ctx, KeyCode::Down) && self.move_dt >= MOVE_WAIT_FAST)
+            || (keyboard::is_key_pressed(ctx, KeyCode::Down) && self.move_dt >= FAST_MOVE_WAIT)
         {
             self.piece.row += 1;
 
