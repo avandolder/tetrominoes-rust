@@ -141,7 +141,7 @@ static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
     [0, 0, 0, 0]]],
 ];
 
-static COLORS: [Color; 7] = [
+static COLORS: [Color; PIECES] = [
     Color::new(1., 0.5, 0., 1.), // Orange (L)
     Color::new(0., 0., 1., 1.),  // Blue (J)
     Color::new(1., 0., 1., 1.),  // Purple (T)
