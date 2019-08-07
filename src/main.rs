@@ -419,14 +419,25 @@ impl State {
         }
     }
 
-    fn update_ghost(&mut self) {
-        self.ghost = make_ghost(&self.piece);
-
-        while !self.board.collides(&self.ghost) {
-            self.ghost.row += 1;
+    fn drop_piece(&self, mut p: Piece) -> Piece {
+        while !self.board.collides(&p) {
+            p.row += 1;
         }
+        p.row -= 1;
+        p
+    }
 
-        self.ghost.row -= 1;
+    fn update_ghost(&mut self) {
+        self.ghost = self.drop_piece(make_ghost(&self.piece));
+    }
+
+    fn set_piece(&mut self) {
+        self.board.set_piece(&self.piece);
+        self.score += self.board.clear_rows().pow(2);
+        self.piece = self.piece_bag.pop().unwrap().prepare();
+        if self.piece_bag.is_empty() {
+            self.piece_bag = generate_pieces();
+        }
     }
 }
 
@@ -446,12 +457,7 @@ impl event::EventHandler for State {
                     std::process::exit(0);
                 }
 
-                self.board.set_piece(&self.piece);
-                self.score += self.board.clear_rows().pow(2);
-                self.piece = self.piece_bag.pop().unwrap().prepare();
-                if self.piece_bag.is_empty() {
-                    self.piece_bag = generate_pieces();
-                }
+                self.set_piece();
             }
 
             self.move_dt = 0.;
@@ -471,6 +477,12 @@ impl event::EventHandler for State {
 
             if keyboard::is_key_pressed(ctx, KeyCode::Up) {
                 self.rotate_piece();
+                self.key_dt = 0.;
+            }
+
+            if keyboard::is_key_pressed(ctx, KeyCode::Space) {
+                self.piece = self.drop_piece(self.piece.clone());
+                self.set_piece();
                 self.key_dt = 0.;
             }
         }
