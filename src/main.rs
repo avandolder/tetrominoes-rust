@@ -159,8 +159,8 @@ enum Cell {
 
 impl Cell {
     fn is_full(&self) -> bool {
-        match self {
-            &Cell::Full(_) => true,
+        match *self {
+            Cell::Full(_) => true,
             _ => false,
         }
     }
