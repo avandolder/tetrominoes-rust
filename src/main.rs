@@ -219,18 +219,14 @@ impl Drawable for Shape {
             Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, COLORS[self.model])?;
         let DrawParam { dest: offset, .. } = param;
 
-        for i in 0..SHAPE_SIZE {
-            for j in 0..SHAPE_SIZE {
-                if self.has_block(j, i) {
-                    let dest = Point2 {
-                        x: offset.x + 1. + (BLOCK_SIZE * (self.column + i as i32)) as f32,
-                        y: offset.y + 1. + (BLOCK_SIZE * (self.row + j as i32)) as f32,
-                    };
-                    let dp = DrawParam::new().dest(dest);
-                    graphics::draw(ctx, &block_mesh, dp)?;
-                }
-            }
-        }
+        self.for_each_block(|i, j| {
+            let dest = Point2 {
+                x: offset.x + 1. + (BLOCK_SIZE * (self.column + j as i32)) as f32,
+                y: offset.y + 1. + (BLOCK_SIZE * (self.row + i as i32)) as f32,
+            };
+            let dp = DrawParam::new().dest(dest);
+            graphics::draw(ctx, &block_mesh, dp).unwrap();
+        });
 
         Ok(())
     }
