@@ -172,6 +172,7 @@ struct Piece {
     column: i32,
     shape: usize,
     orientation: usize,
+    color: Color,
 }
 
 impl Piece {
@@ -181,15 +182,12 @@ impl Piece {
             column: 0,
             shape,
             orientation: 0,
+            color: COLORS[shape],
         }
     }
 
     fn has_block(&self, row: usize, column: usize) -> bool {
         PIECE[self.shape][self.orientation][row][column] == 1
-    }
-
-    fn color(&self) -> Color {
-        COLORS[self.shape]
     }
 
     fn for_each_block<F>(&self, mut f: F)
@@ -230,7 +228,7 @@ impl Drawable for Piece {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
         let block_mesh =
-            Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, self.color())?;
+            Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, self.color)?;
         let DrawParam { dest: offset, .. } = param;
 
         self.for_each_block(|i, j| {
@@ -262,6 +260,10 @@ fn generate_pieces() -> Vec<Piece> {
     let mut pieces: Vec<_> = (0..PIECES).map(Piece::new).collect();
     pieces.shuffle(&mut rng);
     pieces
+}
+
+fn make_ghost(p: &Piece) -> Piece {
+    Piece { color: Color { a: 0.2, ..p.color }, ..*p }
 }
 
 #[derive(Debug)]
@@ -309,7 +311,7 @@ impl Board {
         let row = piece.row as usize;
         let column = piece.column as usize;
         piece.for_each_block(|i, j| {
-            self.cells[row + i][column + j] = Cell::Full(piece.color());
+            self.cells[row + i][column + j] = Cell::Full(piece.color);
         });
     }
 
@@ -382,6 +384,7 @@ struct State {
     board: Board,
     piece: Piece,
     piece_bag: Vec<Piece>,
+    ghost: Piece,
     move_dt: f64,
     key_dt: f64,
     score: i32,
@@ -391,11 +394,13 @@ impl State {
     fn new() -> State {
         let mut piece_bag = generate_pieces();
         let piece = piece_bag.pop().unwrap().prepare();
+        let ghost = make_ghost(&piece);
         
         State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
             piece,
             piece_bag,
+            ghost,
             move_dt: 0.,
             key_dt: KEY_WAIT,
             score: 0,
@@ -412,6 +417,16 @@ impl State {
             }
             new_piece = new_piece.shift(-1);
         }
+    }
+
+    fn update_ghost(&mut self) {
+        self.ghost = make_ghost(&self.piece);
+
+        while !self.board.collides(&self.ghost) {
+            self.ghost.row += 1;
+        }
+
+        self.ghost.row -= 1;
     }
 }
 
@@ -460,6 +475,8 @@ impl event::EventHandler for State {
             }
         }
 
+        self.update_ghost();
+
         Ok(())
     }
 
@@ -479,6 +496,7 @@ impl event::EventHandler for State {
         graphics::draw(ctx, &next, next_dp)?;
         graphics::draw(ctx, self.piece_bag.last().unwrap(), next_piece_dp)?;
         graphics::draw(ctx, &self.board, board_dp)?;
+        graphics::draw(ctx, &self.ghost, board_dp)?;
         graphics::draw(ctx, &self.piece, board_dp)?;
         graphics::present(ctx)
     }
