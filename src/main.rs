@@ -17,6 +17,7 @@ use rand::{seq::SliceRandom, thread_rng};
 const BLOCK_SIZE: i32 = 16;
 const BOARD_HEIGHT: usize = 20;
 const BOARD_WIDTH: usize = 10;
+const GHOST_ALPHA: f32 = 0.15;
 const KEY_WAIT: f64 = 0.2;
 const MOVE_WAIT: f64 = 0.75;
 const FAST_MOVE_WAIT: f64 = 0.05;
@@ -262,7 +263,7 @@ fn generate_pieces() -> Vec<Piece> {
 
 fn make_ghost(p: &Piece) -> Piece {
     Piece {
-        color: Color { a: 0.2, ..p.color },
+        color: Color { a: GHOST_ALPHA, ..p.color },
         ..*p
     }
 }
