@@ -21,13 +21,13 @@ const KEY_WAIT: f64 = 0.2;
 const MOVE_WAIT: f64 = 0.75;
 const MOVE_WAIT_FAST: f64 = 0.05;
 const ORIENTATIONS: usize = 4;
-const SHAPE_COUNT: usize = 7;
-const SHAPE_SIZE: usize = 4;
+const PIECES: usize = 7;
+const PIECE_SIZE: usize = 4;
 
-// SHAPES contains all of the possible shapes in all of their
+// PIECE contains all of the possible pieces in all of their
 // possible orientations.
-static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
-  [[[1, 0, 0, 0], // L shape
+static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
+  [[[1, 0, 0, 0], // L piece
     [1, 0, 0, 0],
     [1, 1, 0, 0],
     [0, 0, 0, 0]],
@@ -43,7 +43,7 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
     [1, 0, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]]],
-  [[[0, 1, 0, 0], // J shape
+  [[[0, 1, 0, 0], // J piece
     [0, 1, 0, 0],
     [1, 1, 0, 0],
     [0, 0, 0, 0]],
@@ -59,7 +59,7 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
     [1, 1, 1, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]]],
-  [[[1, 1, 1, 0], // T shape
+  [[[1, 1, 1, 0], // T piece
     [0, 1, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
@@ -75,7 +75,7 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
     [1, 1, 0, 0],
     [0, 1, 0, 0],
     [0, 0, 0, 0]]],
-  [[[1, 0, 0, 0], // I shape
+  [[[1, 0, 0, 0], // I piece
     [1, 0, 0, 0],
     [1, 0, 0, 0],
     [1, 0, 0, 0]],
@@ -91,7 +91,7 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
     [0, 0, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]]],
-  [[[1, 1, 0, 0], // Z shape
+  [[[1, 1, 0, 0], // Z piece
     [0, 1, 1, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
@@ -107,7 +107,7 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
     [1, 1, 0, 0],
     [1, 0, 0, 0],
     [0, 0, 0, 0]]],
-  [[[0, 1, 1, 0], // S shape
+  [[[0, 1, 1, 0], // S piece
     [1, 1, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
@@ -123,7 +123,7 @@ static SHAPES: [[[[u8; SHAPE_SIZE]; SHAPE_SIZE]; ORIENTATIONS]; SHAPE_COUNT] = [
     [1, 1, 0, 0],
     [0, 1, 0, 0],
     [0, 0, 0, 0]]],
-  [[[1, 1, 0, 0], // O shape
+  [[[1, 1, 0, 0], // O piece
     [1, 1, 0, 0],
     [0, 0, 0, 0],
     [0, 0, 0, 0]],
@@ -167,37 +167,37 @@ impl Cell {
 }
 
 #[derive(Clone, Debug)]
-struct Shape {
+struct Piece {
     row: i32,
     column: i32,
-    model: usize,
+    shape: usize,
     orientation: usize,
 }
 
-impl Shape {
-    fn new(model: usize) -> Shape {
-        Shape {
+impl Piece {
+    fn new(shape: usize) -> Piece {
+        Piece {
             row: -2,
             column: 0,
-            model,
+            shape,
             orientation: 0,
         }
     }
 
     fn has_block(&self, row: usize, column: usize) -> bool {
-        SHAPES[self.model][self.orientation][row][column] == 1
+        PIECE[self.shape][self.orientation][row][column] == 1
     }
 
     fn color(&self) -> Color {
-        COLORS[self.model]
+        COLORS[self.shape]
     }
 
     fn for_each_block<F>(&self, mut f: F)
     where
         F: FnMut(usize, usize),
     {
-        for i in 0..SHAPE_SIZE {
-            for j in 0..SHAPE_SIZE {
+        for i in 0..PIECE_SIZE {
+            for j in 0..PIECE_SIZE {
                 if self.has_block(i, j) {
                     f(i, j);
                 }
@@ -220,11 +220,11 @@ impl Shape {
     }
 }
 
-impl Drawable for Shape {
+impl Drawable for Piece {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
         let block_mesh =
-            Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, COLORS[self.model])?;
+            Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, self.color())?;
         let DrawParam { dest: offset, .. } = param;
 
         self.for_each_block(|i, j| {
@@ -251,11 +251,11 @@ impl Drawable for Shape {
     }
 }
 
-fn generate_shapes() -> Vec<Shape> {
+fn generate_pieces() -> Vec<Piece> {
     let mut rng = thread_rng();
-    let mut shapes: Vec<_> = (0..SHAPE_COUNT).map(Shape::new).collect();
-    shapes.shuffle(&mut rng);
-    shapes
+    let mut pieces: Vec<_> = (0..PIECES).map(Piece::new).collect();
+    pieces.shuffle(&mut rng);
+    pieces
 }
 
 #[derive(Debug)]
@@ -299,26 +299,26 @@ impl Board {
         rows_cleared
     }
 
-    fn set_shape(&mut self, shape: &Shape) {
-        let row = shape.row as usize;
-        let column = shape.column as usize;
-        shape.for_each_block(|i, j| {
-            self.cells[row + i][column + j] = Cell::Full(shape.color());
+    fn set_piece(&mut self, piece: &Piece) {
+        let row = piece.row as usize;
+        let column = piece.column as usize;
+        piece.for_each_block(|i, j| {
+            self.cells[row + i][column + j] = Cell::Full(piece.color());
         });
     }
 
-    fn collides(&self, shape: &Shape) -> bool {
+    fn collides(&self, piece: &Piece) -> bool {
         let mut collides = false;
-        shape.for_each_block(|i, j| {
-            if shape.row + (i as i32) < 0 {
+        piece.for_each_block(|i, j| {
+            if piece.row + (i as i32) < 0 {
                 return;
             }
 
-            if shape.column + (j as i32) < 0
-                || shape.column + (j as i32) >= self.width as i32
-                || shape.row + (i as i32) >= self.height as i32
-                || self.cells[(shape.row + (i as i32)) as usize]
-                    [(shape.column + (j as i32)) as usize]
+            if piece.column + (j as i32) < 0
+                || piece.column + (j as i32) >= self.width as i32
+                || piece.row + (i as i32) >= self.height as i32
+                || self.cells[(piece.row + (i as i32)) as usize]
+                    [(piece.column + (j as i32)) as usize]
                     .is_full() {
                 collides = true;
             }
@@ -374,8 +374,8 @@ impl Drawable for Board {
 
 struct State {
     board: Board,
-    shape: Shape,
-    shape_bag: Vec<Shape>,
+    piece: Piece,
+    piece_bag: Vec<Piece>,
     move_dt: f64,
     key_dt: f64,
     score: i32,
@@ -383,27 +383,27 @@ struct State {
 
 impl State {
     fn new() -> State {
-        let mut shape_bag = generate_shapes();
-        let shape = shape_bag.pop().unwrap();
+        let mut piece_bag = generate_pieces();
+        let piece = piece_bag.pop().unwrap();
         State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
-            shape,
-            shape_bag,
+            piece,
+            piece_bag,
             move_dt: 0.,
             key_dt: KEY_WAIT,
             score: 0,
         }
     }
 
-    fn rotate_shape(&mut self) {
-        let mut new_shape = self.shape.clone();
-        new_shape.rotate(1);
-        for _ in 0..SHAPE_SIZE {
-            if !self.board.collides(&new_shape) {
-                self.shape = new_shape;
+    fn rotate_piece(&mut self) {
+        let mut new_piece = self.piece.clone();
+        new_piece.rotate(1);
+        for _ in 0..PIECE_SIZE {
+            if !self.board.collides(&new_piece) {
+                self.piece = new_piece;
                 break;
             }
-            new_shape = new_shape.shift(-1);
+            new_piece = new_piece.shift(-1);
         }
     }
 }
@@ -415,20 +415,20 @@ impl event::EventHandler for State {
         if self.move_dt >= MOVE_WAIT || (
                 keyboard::is_key_pressed(ctx, KeyCode::Down) &&
                 self.move_dt >= MOVE_WAIT_FAST) {
-            self.shape.row += 1;
+            self.piece.row += 1;
 
-            if self.board.collides(&self.shape) {
-                self.shape.row -= 1;
-                if self.shape.row < 0 {
+            if self.board.collides(&self.piece) {
+                self.piece.row -= 1;
+                if self.piece.row < 0 {
                     println!("Game over!");
                     std::process::exit(0);
                 }
 
-                self.board.set_shape(&self.shape);
+                self.board.set_piece(&self.piece);
                 self.score += self.board.clear_rows().pow(2);
-                self.shape = self.shape_bag.pop().unwrap();
-                if self.shape_bag.is_empty() {
-                    self.shape_bag = generate_shapes();
+                self.piece = self.piece_bag.pop().unwrap();
+                if self.piece_bag.is_empty() {
+                    self.piece_bag = generate_pieces();
                 }
             }
 
@@ -438,17 +438,17 @@ impl event::EventHandler for State {
         self.key_dt += dt;
         if self.key_dt >= KEY_WAIT {
             if keyboard::is_key_pressed(ctx, KeyCode::Left) &&
-                    !self.board.collides(&self.shape.clone().shift(-1)) {
-                self.shape.column -= 1;
+                    !self.board.collides(&self.piece.clone().shift(-1)) {
+                self.piece.column -= 1;
                 self.key_dt = 0.;
             } else if keyboard::is_key_pressed(ctx, KeyCode::Right) &&
-                    !self.board.collides(&self.shape.clone().shift(1)) {
-                self.shape.column += 1;
+                    !self.board.collides(&self.piece.clone().shift(1)) {
+                self.piece.column += 1;
                 self.key_dt = 0.;
             }
 
             if keyboard::is_key_pressed(ctx, KeyCode::Up) {
-                self.rotate_shape();
+                self.rotate_piece();
                 self.key_dt = 0.;
             }
         }
@@ -459,20 +459,20 @@ impl event::EventHandler for State {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let title = Text::new(("Tetrominoes", font, 12.));
-        let next = Text::new(("Next Shape", font, 12.));
+        let next = Text::new(("Next Piece", font, 12.));
         let next_dp = DrawParam::new().dest(Point2 { x: 0., y: 100. });
         let score = Text::new((format!("Score: {}", self.score), font, 12.));
         let score_dp = DrawParam::new().dest(Point2 { x: 0., y: 50. });
-        let next_shape_dp = DrawParam::new().dest(Point2 { x: 0., y: 160. });
+        let next_piece_dp = DrawParam::new().dest(Point2 { x: 0., y: 160. });
         let board_dp = DrawParam::new().dest(Point2 { x: 100., y: 100. });
 
         graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
         graphics::draw(ctx, &score, score_dp)?;
         graphics::draw(ctx, &next, next_dp)?;
-        graphics::draw(ctx, self.shape_bag.last().unwrap(), next_shape_dp)?;
+        graphics::draw(ctx, self.piece_bag.last().unwrap(), next_piece_dp)?;
         graphics::draw(ctx, &self.board, board_dp)?;
-        graphics::draw(ctx, &self.shape, board_dp)?;
+        graphics::draw(ctx, &self.piece, board_dp)?;
         graphics::present(ctx)
     }
 }
