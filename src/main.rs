@@ -12,7 +12,7 @@ use ggez::{
     mint::Point2,
     timer, Context, ContextBuilder, GameResult,
 };
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, seq::SliceRandom};
 
 const BLOCK_SIZE: i32 = 16;
 const BOARD_HEIGHT: usize = 20;
@@ -175,12 +175,11 @@ struct Shape {
 }
 
 impl Shape {
-    fn generate() -> Shape {
-        let mut rng = thread_rng();
+    fn new(model: usize) -> Shape {
         Shape {
             row: -2,
             column: 0,
-            model: rng.gen_range(0, SHAPE_COUNT),
+            model,
             orientation: 0,
         }
     }
@@ -250,6 +249,13 @@ impl Drawable for Shape {
     fn blend_mode(&self) -> Option<BlendMode> {
         None
     }
+}
+
+fn generate_shapes() -> Vec<Shape> {
+    let mut rng = thread_rng();
+    let mut shapes: Vec<_> = (0..SHAPE_COUNT).map(Shape::new).collect();
+    shapes.shuffle(&mut rng);
+    shapes
 }
 
 #[derive(Debug)]
@@ -369,7 +375,7 @@ impl Drawable for Board {
 struct State {
     board: Board,
     shape: Shape,
-    next_shape: Shape,
+    shape_bag: Vec<Shape>,
     move_dt: f64,
     key_dt: f64,
     score: i32,
@@ -377,10 +383,12 @@ struct State {
 
 impl State {
     fn new() -> State {
+        let mut shape_bag = generate_shapes();
+        let shape = shape_bag.pop().unwrap();
         State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
-            shape: Shape::generate(),
-            next_shape: Shape::generate(),
+            shape,
+            shape_bag,
             move_dt: 0.,
             key_dt: KEY_WAIT,
             score: 0,
@@ -418,8 +426,10 @@ impl event::EventHandler for State {
 
                 self.board.set_shape(&self.shape);
                 self.score += self.board.clear_rows().pow(2);
-                self.shape = self.next_shape.clone();
-                self.next_shape = Shape::generate();
+                self.shape = self.shape_bag.pop().unwrap();
+                if self.shape_bag.is_empty() {
+                    self.shape_bag = generate_shapes();
+                }
             }
 
             self.move_dt = 0.;
@@ -460,7 +470,7 @@ impl event::EventHandler for State {
         graphics::draw(ctx, &title, DrawParam::default())?;
         graphics::draw(ctx, &score, score_dp)?;
         graphics::draw(ctx, &next, next_dp)?;
-        graphics::draw(ctx, &self.next_shape, next_shape_dp)?;
+        graphics::draw(ctx, self.shape_bag.last().unwrap(), next_shape_dp)?;
         graphics::draw(ctx, &self.board, board_dp)?;
         graphics::draw(ctx, &self.shape, board_dp)?;
         graphics::present(ctx)
