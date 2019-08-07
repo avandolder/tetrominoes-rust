@@ -12,7 +12,7 @@ use ggez::{
     mint::Point2,
     timer, Context, ContextBuilder, GameResult,
 };
-use rand::{thread_rng, seq::SliceRandom};
+use rand::{seq::SliceRandom, thread_rng};
 
 const BLOCK_SIZE: i32 = 16;
 const BOARD_HEIGHT: usize = 20;
@@ -143,12 +143,12 @@ static PIECE: [[[[u8; PIECE_SIZE]; PIECE_SIZE]; ORIENTATIONS]; PIECES] = [
 
 static COLORS: [Color; 7] = [
     Color::new(1., 0.5, 0., 1.), // Orange (L)
-    Color::new(0., 0., 1., 1.), // Blue (J)
-    Color::new(1., 0., 1., 1.), // Purple (T)
-    Color::new(0., 1., 1., 1.), // Aqua (I)
-    Color::new(1., 0., 0., 1.), // Red (Z)
-    Color::new(0., 1., 0., 1.), // Green (S)
-    Color::new(1., 1., 0., 1.), // Yellow (O)
+    Color::new(0., 0., 1., 1.),  // Blue (J)
+    Color::new(1., 0., 1., 1.),  // Purple (T)
+    Color::new(0., 1., 1., 1.),  // Aqua (I)
+    Color::new(1., 0., 0., 1.),  // Red (Z)
+    Color::new(0., 1., 0., 1.),  // Green (S)
+    Color::new(1., 1., 0., 1.),  // Yellow (O)
 ];
 
 #[derive(Clone, Debug)]
@@ -227,8 +227,7 @@ impl Piece {
 impl Drawable for Piece {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         let block_rect = Rect::new_i32(0, 0, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-        let block_mesh =
-            Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, self.color)?;
+        let block_mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), block_rect, self.color)?;
         let DrawParam { dest: offset, .. } = param;
 
         self.for_each_block(|i, j| {
@@ -247,8 +246,7 @@ impl Drawable for Piece {
         None
     }
 
-    fn set_blend_mode(&mut self, _: Option<BlendMode>) {
-    }
+    fn set_blend_mode(&mut self, _: Option<BlendMode>) {}
 
     fn blend_mode(&self) -> Option<BlendMode> {
         None
@@ -263,7 +261,10 @@ fn generate_pieces() -> Vec<Piece> {
 }
 
 fn make_ghost(p: &Piece) -> Piece {
-    Piece { color: Color { a: 0.2, ..p.color }, ..*p }
+    Piece {
+        color: Color { a: 0.2, ..p.color },
+        ..*p
+    }
 }
 
 #[derive(Debug)]
@@ -327,7 +328,8 @@ impl Board {
                 || piece.row + (i as i32) >= self.height as i32
                 || self.cells[(piece.row + (i as i32)) as usize]
                     [(piece.column + (j as i32)) as usize]
-                    .is_full() {
+                    .is_full()
+            {
                 collides = true;
             }
         });
@@ -338,7 +340,8 @@ impl Board {
 impl Drawable for Board {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> GameResult {
         let border_rect = Rect::new_i32(
-            0, 0,
+            0,
+            0,
             self.width as i32 * BLOCK_SIZE,
             self.height as i32 * BLOCK_SIZE,
         );
@@ -359,8 +362,8 @@ impl Drawable for Board {
                         };
                         let dp = DrawParam::new().dest(dest).color(color);
                         graphics::draw(ctx, &block_mesh, dp)?;
-                    },
-                    Cell::Empty => {},
+                    }
+                    Cell::Empty => {}
                 }
             }
         }
@@ -372,8 +375,7 @@ impl Drawable for Board {
         Some(Rect::new_i32(0, 0, self.width as i32, self.height as i32))
     }
 
-    fn set_blend_mode(&mut self, _: Option<BlendMode>) {
-    }
+    fn set_blend_mode(&mut self, _: Option<BlendMode>) {}
 
     fn blend_mode(&self) -> Option<BlendMode> {
         None
@@ -395,7 +397,7 @@ impl State {
         let mut piece_bag = generate_pieces();
         let piece = piece_bag.pop().unwrap().prepare();
         let ghost = make_ghost(&piece);
-        
+
         State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
             piece,
@@ -450,9 +452,9 @@ impl event::EventHandler for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         let dt = timer::duration_to_f64(timer::delta(ctx));
         self.move_dt += dt;
-        if self.move_dt >= MOVE_WAIT || (
-                keyboard::is_key_pressed(ctx, KeyCode::Down) &&
-                self.move_dt >= MOVE_WAIT_FAST) {
+        if self.move_dt >= MOVE_WAIT
+            || (keyboard::is_key_pressed(ctx, KeyCode::Down) && self.move_dt >= MOVE_WAIT_FAST)
+        {
             self.piece.row += 1;
 
             if self.board.collides(&self.piece) {
@@ -465,12 +467,14 @@ impl event::EventHandler for State {
 
         self.key_dt += dt;
         if self.key_dt >= KEY_WAIT {
-            if keyboard::is_key_pressed(ctx, KeyCode::Left) &&
-                    !self.board.collides(&self.piece.clone().shift(-1)) {
+            if keyboard::is_key_pressed(ctx, KeyCode::Left)
+                && !self.board.collides(&self.piece.clone().shift(-1))
+            {
                 self.piece.column -= 1;
                 self.key_dt = 0.;
-            } else if keyboard::is_key_pressed(ctx, KeyCode::Right) &&
-                    !self.board.collides(&self.piece.clone().shift(1)) {
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Right)
+                && !self.board.collides(&self.piece.clone().shift(1))
+            {
                 self.piece.column += 1;
                 self.key_dt = 0.;
             }
