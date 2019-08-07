@@ -6,17 +6,18 @@ use std::env;
 use std::path;
 
 use ggez::{
-    conf, event, graphics, timer,
+    conf, event, graphics,
     graphics::{BlendMode, Color, DrawMode, DrawParam, Drawable, Font, Mesh, Rect, Text},
     input::{keyboard, keyboard::KeyCode},
     mint::Point2,
-    Context, ContextBuilder, GameResult,
+    timer, Context, ContextBuilder, GameResult,
 };
 use rand::{thread_rng, Rng};
 
 const BLOCK_SIZE: i32 = 16;
 const BOARD_HEIGHT: usize = 20;
 const BOARD_WIDTH: usize = 10;
+const KEY_WAIT: f64 = 0.2;
 const MOVE_WAIT: f64 = 0.75;
 const MOVE_WAIT_FAST: f64 = 0.05;
 const ORIENTATIONS: usize = 4;
@@ -165,7 +166,7 @@ impl Cell {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Shape {
     row: i32,
     column: i32,
@@ -203,6 +204,11 @@ impl Shape {
                 }
             }
         }
+    }
+
+    fn shift(mut self, amt: i32) -> Self {
+        self.column += amt;
+        self
     }
 }
 
@@ -358,6 +364,7 @@ struct State {
     board: Board,
     shape: Shape,
     move_dt: f64,
+    key_dt: f64,
 }
 
 impl State {
@@ -366,13 +373,15 @@ impl State {
             board: Board::new(BOARD_WIDTH, BOARD_HEIGHT),
             shape: Shape::generate(),
             move_dt: 0.,
+            key_dt: KEY_WAIT,
         }
     }
 }
 
 impl event::EventHandler for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        self.move_dt += timer::duration_to_f64(timer::delta(ctx));
+        let dt = timer::duration_to_f64(timer::delta(ctx));
+        self.move_dt += dt;
         if self.move_dt >= MOVE_WAIT || (
                 keyboard::is_key_pressed(ctx, KeyCode::Down) &&
                 self.move_dt >= MOVE_WAIT_FAST) {
@@ -391,6 +400,19 @@ impl event::EventHandler for State {
             }
 
             self.move_dt = 0.;
+        }
+
+        self.key_dt += dt;
+        if self.key_dt >= KEY_WAIT {
+            if keyboard::is_key_pressed(ctx, KeyCode::Left) &&
+                    !self.board.collides(&self.shape.clone().shift(-1)) {
+                self.shape.column -= 1;
+                self.key_dt = 0.;
+            } else if keyboard::is_key_pressed(ctx, KeyCode::Right) &&
+                    !self.board.collides(&self.shape.clone().shift(1)) {
+                self.shape.column += 1;
+                self.key_dt = 0.;
+            }
         }
 
         Ok(())
