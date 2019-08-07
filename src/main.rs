@@ -417,13 +417,8 @@ fn main() -> GameResult {
 
     // We add the CARGO_MANIFEST_DIR/resources to the filesystems paths so
     // we look in the cargo project for files.
-    // Using a ContextBuilder is nice for this because it means that
-    // it will look for a conf.toml or icon file or such in
-    // this directory when the Context is created.
     if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-        let mut path = path::PathBuf::from(manifest_dir);
-        path.push("resources");
-        println!("Adding path {:?}", path);
+        let path = path::PathBuf::from(manifest_dir).join("resources");
         cb = cb.add_resource_path(path);
     }
 
