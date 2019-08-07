@@ -2,6 +2,8 @@ extern crate ggez;
 extern crate itertools;
 extern crate rand;
 
+mod state;
+
 use std::env;
 use std::path;
 
@@ -13,6 +15,8 @@ use ggez::{
     timer, Context, ContextBuilder, GameResult,
 };
 use rand::{seq::SliceRandom, thread_rng};
+
+use state::{State, StateManager, Transition};
 
 const BLOCK_SIZE: i32 = 16;
 const BOARD_HEIGHT: usize = 20;
@@ -329,7 +333,7 @@ impl Drawable for Board {
     }
 }
 
-struct State {
+struct MainState {
     board: Board,
     piece: Piece,
     piece_bag: Vec<Piece>,
@@ -339,13 +343,13 @@ struct State {
     score: i32,
 }
 
-impl State {
-    fn new(ctx: &mut Context) -> GameResult<State> {
+impl MainState {
+    fn new(ctx: &mut Context) -> GameResult<MainState> {
         let mut piece_bag = generate_pieces();
         let piece = piece_bag.pop().unwrap().prepare();
         let ghost = make_ghost(&piece);
 
-        Ok(State {
+        Ok(MainState {
             board: Board::new(ctx, BOARD_WIDTH, BOARD_HEIGHT)?,
             piece,
             piece_bag,
@@ -395,8 +399,8 @@ impl State {
     }
 }
 
-impl event::EventHandler for State {
-    fn update(&mut self, ctx: &mut Context) -> GameResult {
+impl State for MainState {
+    fn update(&mut self, ctx: &mut Context) -> GameResult<Transition> {
         let dt = timer::duration_to_f64(timer::delta(ctx));
         self.move_dt += dt;
         if self.move_dt >= MOVE_WAIT
@@ -440,7 +444,7 @@ impl event::EventHandler for State {
 
         self.update_ghost();
 
-        Ok(())
+        Ok(Transition::None)
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -475,6 +479,7 @@ fn main() -> GameResult {
     let cb = ContextBuilder::new("tetrominoes", "ajv").add_resource_path(resource_path);
 
     let (ctx, event_loop) = &mut cb.build()?;
-    let state = &mut State::new(ctx)?;
-    event::run(ctx, event_loop, state)
+    let st = Box::new(MainState::new(ctx)?);
+    let sm = &mut StateManager::new(ctx, st);
+    event::run(ctx, event_loop, sm)
 }
