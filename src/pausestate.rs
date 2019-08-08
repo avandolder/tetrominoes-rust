@@ -41,10 +41,9 @@ impl State for PauseState {
         let color = Color::new(0., 0., 0., 0.75);
         let mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), rect, color)?;
 
-        graphics::clear(ctx, graphics::BLACK);
         self.prev_state.clone().unwrap().borrow_mut().draw(ctx)?;
         graphics::draw(ctx, &mesh, DrawParam::default())?;
         graphics::draw(ctx, &title, title_dp)?;
-        graphics::present(ctx)
+        Ok(())
     }
 }
