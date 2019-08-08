@@ -1,5 +1,6 @@
 mod board;
 mod cell;
+mod introstate;
 mod mainstate;
 mod pausestate;
 mod piece;
@@ -10,7 +11,7 @@ use std::path;
 
 use ggez::{event, ContextBuilder, GameResult};
 
-use mainstate::MainState;
+use introstate::IntroState;
 use state::StateManager;
 
 fn main() -> GameResult {
@@ -25,7 +26,7 @@ fn main() -> GameResult {
         .with_conf_file(true);
 
     let (ctx, event_loop) = &mut cb.build()?;
-    let st = Box::new(MainState::new(ctx)?);
+    let st = Box::new(IntroState::new(ctx)?);
     let sm = &mut StateManager::new(ctx, st);
     event::run(ctx, event_loop, sm)
 }
