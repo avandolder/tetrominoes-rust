@@ -1,3 +1,6 @@
+use std::cell::{RefCell, RefMut};
+use std::rc::Rc;
+
 use ggez::{
     event::{Axis, Button, EventHandler},
     input::{
@@ -8,8 +11,10 @@ use ggez::{
     Context, GameResult,
 };
 
+pub type StateRef = Rc<RefCell<Box<dyn State>>>;
+
 pub trait State {
-    fn on_start(&mut self, _ctx: &mut Context, _prev: Option<Box<dyn State>>) {}
+    fn on_start(&mut self, _ctx: &mut Context, _prev_state: Option<StateRef>) {}
 
     fn on_stop(&mut self, _ctx: &mut Context) {}
 
@@ -128,13 +133,13 @@ pub enum Transition {
 }
 
 pub struct StateManager {
-    states: Vec<Box<dyn State>>,
+    states: Vec<StateRef>,
 }
 
 impl StateManager {
     pub fn new(ctx: &mut Context, mut st: Box<dyn State>) -> StateManager {
         st.on_start(ctx, None);
-        StateManager { states: vec![st] }
+        StateManager { states: vec![Rc::new(RefCell::new(st))] }
     }
 
     fn handle_transition(&mut self, ctx: &mut Context, t: Transition) {
@@ -143,28 +148,31 @@ impl StateManager {
         match t {
             Transition::None => {}
             Transition::Pop => {
-                self.states[current_state].on_stop(ctx);
+                self.current_state().on_stop(ctx);
                 self.states.pop();
                 if self.states.is_empty() {
                     std::process::exit(0);
                 }
-                self.states[current_state - 1].on_resume(ctx);
+                self.current_state().on_resume(ctx);
             }
             Transition::Push(mut st) => {
-                st.on_start(ctx, None);
-                self.states[current_state].on_pause(ctx);
-                self.states.push(st);
+                self.current_state().on_pause(ctx);
+                let prev = self.states[current_state].clone();
+                st.on_start(ctx, Some(prev));
+                self.states.push(Rc::new(RefCell::new(st)));
             }
             Transition::Switch(mut st) => {
-                st.on_start(ctx, None);
-                self.states[current_state].on_stop(ctx);
-                self.states[current_state] = st;
+                self.current_state().on_stop(ctx);
+                let prev = self.states.last().unwrap().clone();
+                st.on_start(ctx, Some(prev));
+                self.states[current_state] = Rc::new(RefCell::new(st));
             }
         }
     }
 
-    fn current_state(&mut self) -> &mut Box<dyn State> {
-        self.states.last_mut().unwrap()
+    fn current_state(&mut self) -> RefMut<Box<dyn State>> {
+        let strc = self.states.last_mut().unwrap();
+        Rc::get_mut(strc).unwrap().borrow_mut()
     }
 }
 
@@ -181,16 +189,12 @@ impl EventHandler for StateManager {
     }
 
     fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
-        let t = self
-            .current_state()
-            .mouse_button_down_event(ctx, button, x, y);
+        let t = self.current_state().mouse_button_down_event(ctx, button, x, y);
         self.handle_transition(ctx, t);
     }
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
-        let t = self
-            .current_state()
-            .mouse_button_up_event(ctx, button, x, y);
+        let t = self.current_state().mouse_button_up_event(ctx, button, x, y);
         self.handle_transition(ctx, t);
     }
 
@@ -211,9 +215,7 @@ impl EventHandler for StateManager {
         keymods: KeyMods,
         repeat: bool,
     ) {
-        let t = self
-            .current_state()
-            .key_down_event(ctx, keycode, keymods, repeat);
+        let t = self.current_state().key_down_event(ctx, keycode, keymods, repeat);
         self.handle_transition(ctx, t);
     }
 
@@ -238,9 +240,7 @@ impl EventHandler for StateManager {
     }
 
     fn gamepad_axis_event(&mut self, ctx: &mut Context, axis: Axis, value: f32, id: GamepadId) {
-        let t = self
-            .current_state()
-            .gamepad_axis_event(ctx, axis, value, id);
+        let t = self.current_state().gamepad_axis_event(ctx, axis, value, id);
         self.handle_transition(ctx, t);
     }
 
@@ -250,12 +250,12 @@ impl EventHandler for StateManager {
     }
 
     fn quit_event(&mut self, ctx: &mut Context) -> bool {
-        match self.current_state().quit_event(ctx) {
-            Transition::None => false,
-            t => {
-                self.handle_transition(ctx, t);
-                true
-            }
+        let t = self.current_state().quit_event(ctx);
+        if let Transition::None = t {
+            false
+        } else {
+            self.handle_transition(ctx, t);
+            true
         }
     }
 
