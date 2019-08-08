@@ -140,7 +140,9 @@ pub struct StateManager {
 impl StateManager {
     pub fn new(ctx: &mut Context, mut st: Box<dyn State>) -> StateManager {
         st.on_start(ctx, None);
-        StateManager { states: vec![Rc::new(RefCell::new(st))] }
+        StateManager {
+            states: vec![Rc::new(RefCell::new(st))],
+        }
     }
 
     fn handle_transition(&mut self, ctx: &mut Context, t: Transition) {
@@ -191,12 +193,16 @@ impl EventHandler for StateManager {
     }
 
     fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
-        let t = self.current_state().mouse_button_down_event(ctx, button, x, y);
+        let t = self
+            .current_state()
+            .mouse_button_down_event(ctx, button, x, y);
         self.handle_transition(ctx, t);
     }
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
-        let t = self.current_state().mouse_button_up_event(ctx, button, x, y);
+        let t = self
+            .current_state()
+            .mouse_button_up_event(ctx, button, x, y);
         self.handle_transition(ctx, t);
     }
 
@@ -217,7 +223,9 @@ impl EventHandler for StateManager {
         keymods: KeyMods,
         repeat: bool,
     ) {
-        let t = self.current_state().key_down_event(ctx, keycode, keymods, repeat);
+        let t = self
+            .current_state()
+            .key_down_event(ctx, keycode, keymods, repeat);
         self.handle_transition(ctx, t);
     }
 
@@ -242,7 +250,9 @@ impl EventHandler for StateManager {
     }
 
     fn gamepad_axis_event(&mut self, ctx: &mut Context, axis: Axis, value: f32, id: GamepadId) {
-        let t = self.current_state().gamepad_axis_event(ctx, axis, value, id);
+        let t = self
+            .current_state()
+            .gamepad_axis_event(ctx, axis, value, id);
         self.handle_transition(ctx, t);
     }
 
