@@ -1,7 +1,3 @@
-extern crate ggez;
-extern crate itertools;
-extern crate rand;
-
 mod board;
 mod cell;
 mod mainstate;
