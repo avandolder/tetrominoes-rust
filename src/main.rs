@@ -24,7 +24,9 @@ fn main() -> GameResult {
         path::PathBuf::from("./resources")
     };
 
-    let cb = ContextBuilder::new("tetrominoes", "ajv").add_resource_path(resource_path);
+    let cb = ContextBuilder::new("tetrominoes", "ajv")
+        .add_resource_path(resource_path)
+        .with_conf_file(true);
 
     let (ctx, event_loop) = &mut cb.build()?;
     let st = Box::new(MainState::new(ctx)?);

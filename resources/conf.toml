@@ -1,0 +1,27 @@
+[window_mode]
+width = 640.0
+height = 480.0
+maximized = false
+fullscreen_type = "Windowed"
+borderless = false
+min_width = 0.0
+min_height = 0.0
+max_width = 0.0
+max_height = 0.0
+resizable = false
+
+[window_setup]
+title = "Tetrominoes"
+samples = "Zero"
+vsync = true
+icon = ""
+srgb = true
+
+[backend]
+type = "OpenGL"
+major = 3
+minor = 2
+
+[modules]
+gamepad = true
+audio = true
