@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use ggez::{
     event::{Axis, Button, EventHandler},
+    graphics,
     input::{
         gamepad::GamepadId,
         keyboard::{KeyCode, KeyMods},
@@ -184,8 +185,9 @@ impl EventHandler for StateManager {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        graphics::clear(ctx, graphics::BLACK);
         self.current_state().draw(ctx)?;
-        Ok(())
+        graphics::present(ctx)
     }
 
     fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {

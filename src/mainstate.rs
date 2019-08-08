@@ -138,7 +138,6 @@ impl State for MainState {
         let next_piece_dp = DrawParam::new().dest(Point2 { x: 0., y: 120. });
         let board_dp = DrawParam::new().dest(Point2 { x: 100., y: 100. });
 
-        graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
         graphics::draw(ctx, &score, score_dp)?;
         graphics::draw(ctx, &next, next_dp)?;
@@ -146,6 +145,6 @@ impl State for MainState {
         graphics::draw(ctx, &self.board, board_dp)?;
         graphics::draw(ctx, &self.ghost, board_dp)?;
         graphics::draw(ctx, &self.piece, board_dp)?;
-        graphics::present(ctx)
+        Ok(())
     }
 }
