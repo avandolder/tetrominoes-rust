@@ -7,6 +7,7 @@ use ggez::{
 };
 
 use crate::board::{Board, BOARD_HEIGHT, BOARD_WIDTH};
+use crate::pausestate::PauseState;
 use crate::piece::{generate_pieces, make_ghost, Piece, PIECE_SIZE};
 use crate::state::{State, Transition};
 
@@ -120,6 +121,10 @@ impl State for MainState {
                 self.piece = self.drop_piece(self.piece.clone());
                 self.set_piece();
                 self.key_dt = 0.;
+            }
+
+            if keyboard::is_key_pressed(ctx, KeyCode::Escape) {
+                return Ok(Transition::Push(Box::new(PauseState::new())));
             }
         }
 

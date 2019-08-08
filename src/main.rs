@@ -5,6 +5,7 @@ extern crate rand;
 mod board;
 mod cell;
 mod mainstate;
+mod pausestate;
 mod piece;
 mod state;
 
