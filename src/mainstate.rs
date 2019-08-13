@@ -1,7 +1,6 @@
 use ggez::{
-    graphics,
-    graphics::{DrawParam, Font, Text},
-    input::{keyboard, keyboard::KeyCode},
+    graphics::{self, DrawParam, Font, Text},
+    input::keyboard::{self, KeyCode},
     mint::Point2,
     timer, Context, GameResult,
 };
@@ -124,7 +123,7 @@ impl State for MainState {
             }
 
             if keyboard::is_key_pressed(ctx, KeyCode::Escape) {
-                return Ok(Transition::Push(Box::new(PauseState::new())));
+                return Transition::push(PauseState::new());
             }
         }
 

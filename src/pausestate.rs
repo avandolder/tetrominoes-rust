@@ -1,7 +1,6 @@
 use ggez::{
-    graphics,
-    graphics::{Color, DrawMode, DrawParam, Font, Mesh, Rect, Text},
-    input::keyboard::{is_key_pressed, KeyCode},
+    graphics::{self, Color, DrawMode, DrawParam, Font, Mesh, Rect, Text},
+    input::keyboard::{self, KeyCode},
     mint::Point2,
     Context, GameResult,
 };
@@ -24,17 +23,17 @@ impl State for PauseState {
     }
 
     fn update(&mut self, ctx: &mut Context) -> GameResult<Transition> {
-        if is_key_pressed(ctx, KeyCode::Return) {
-            return Ok(Transition::Pop);
+        if keyboard::is_key_pressed(ctx, KeyCode::Return) {
+            Ok(Transition::Pop)
+        } else {
+            Ok(Transition::None)
         }
-
-        Ok(Transition::None)
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
-        let title = Text::new(("Paused\nPress Enter to resume", font, 12.));
-        let title_dp = DrawParam::new().dest(Point2 { x: 100., y: 50. });
+        let msg = Text::new(("Paused\nPress Enter to resume", font, 12.));
+        let msg_dp = DrawParam::new().dest(Point2 { x: 100., y: 50. });
 
         let Rect { w, h, .. } = graphics::screen_coordinates(ctx);
         let rect = Rect::new(0., 0., w, h);
@@ -43,7 +42,7 @@ impl State for PauseState {
 
         self.prev_state.clone().unwrap().borrow_mut().draw(ctx)?;
         graphics::draw(ctx, &mesh, DrawParam::default())?;
-        graphics::draw(ctx, &title, title_dp)?;
+        graphics::draw(ctx, &msg, msg_dp)?;
         Ok(())
     }
 }

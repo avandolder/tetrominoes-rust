@@ -133,6 +133,16 @@ pub enum Transition {
     Switch(Box<dyn State>),
 }
 
+impl Transition {
+    pub fn push(st: impl State) -> GameResult<Transition> {
+        Ok(Transition::Push(Box::new(st)))
+    }
+
+    pub fn switch(st: impl State) -> GameResult<Transition> {
+        Ok(Transition::Switch(Box::new(st)))
+    }
+}
+
 pub struct StateManager {
     states: Vec<StateRef>,
 }

@@ -18,7 +18,7 @@ impl IntroState {
 impl State for IntroState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<Transition> {
         if keyboard::is_key_pressed(ctx, KeyCode::Return) {
-            Ok(Transition::Switch(Box::new(MainState::new(ctx)?)))
+            Transition::switch(MainState::new(ctx)?)
         } else {
             Ok(Transition::None)
         }
