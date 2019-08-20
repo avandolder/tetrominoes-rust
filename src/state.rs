@@ -134,11 +134,11 @@ pub enum Transition {
 }
 
 impl Transition {
-    pub fn push(st: impl State) -> GameResult<Transition> {
+    pub fn push(st: impl State + 'static) -> GameResult<Transition> {
         Ok(Transition::Push(Box::new(st)))
     }
 
-    pub fn switch(st: impl State) -> GameResult<Transition> {
+    pub fn switch(st: impl State + 'static) -> GameResult<Transition> {
         Ok(Transition::Switch(Box::new(st)))
     }
 }
