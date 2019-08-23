@@ -5,21 +5,21 @@ use ggez::{
 };
 use ggez_goodies::scene::{Scene, SceneSwitch};
 
-use crate::mainstate::MainState;
+use crate::mainscene::MainScene;
 use crate::world::World;
 
-pub struct IntroState;
+pub struct IntroScene;
 
-impl IntroState {
-    pub fn new(_ctx: &mut Context) -> GameResult<IntroState> {
-        Ok(IntroState {})
+impl IntroScene {
+    pub fn new(_ctx: &mut Context) -> GameResult<IntroScene> {
+        Ok(IntroScene {})
     }
 }
 
-impl Scene<World, ()> for IntroState {
+impl Scene<World, ()> for IntroScene {
     fn update(&mut self, _world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
         if keyboard::is_key_pressed(ctx, KeyCode::Return) {
-            SceneSwitch::replace(MainState::new(ctx).unwrap())
+            SceneSwitch::replace(MainScene::new(ctx).unwrap())
         } else {
             SceneSwitch::None
         }

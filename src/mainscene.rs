@@ -7,7 +7,7 @@ use ggez::{
 use ggez_goodies::scene::{Scene, SceneSwitch};
 
 use crate::board::{Board, BOARD_HEIGHT, BOARD_WIDTH};
-use crate::pausestate::PauseState;
+use crate::pausescene::PauseScene;
 use crate::piece::{generate_pieces, make_ghost, Piece, PIECE_SIZE};
 use crate::world::World;
 
@@ -15,7 +15,7 @@ const KEY_WAIT: f64 = 0.2;
 const MOVE_WAIT: f64 = 1.;
 const FAST_MOVE_WAIT: f64 = 0.05;
 
-pub struct MainState {
+pub struct MainScene {
     board: Board,
     piece: Piece,
     piece_bag: Vec<Piece>,
@@ -24,13 +24,13 @@ pub struct MainState {
     key_dt: f64,
 }
 
-impl MainState {
-    pub fn new(ctx: &mut Context) -> GameResult<MainState> {
+impl MainScene {
+    pub fn new(ctx: &mut Context) -> GameResult<MainScene> {
         let mut piece_bag = generate_pieces();
         let piece = piece_bag.pop().unwrap().prepare();
         let ghost = make_ghost(&piece);
 
-        Ok(MainState {
+        Ok(MainScene {
             board: Board::new(ctx, BOARD_WIDTH, BOARD_HEIGHT)?,
             piece,
             piece_bag,
@@ -79,7 +79,7 @@ impl MainState {
     }
 }
 
-impl Scene<World, ()> for MainState {
+impl Scene<World, ()> for MainScene {
     fn update(&mut self, world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
         let dt = timer::duration_to_f64(timer::delta(ctx));
         self.move_dt += dt;
@@ -122,7 +122,7 @@ impl Scene<World, ()> for MainState {
             }
 
             if keyboard::is_key_pressed(ctx, KeyCode::Escape) {
-                return SceneSwitch::push(PauseState::new(ctx).unwrap());
+                return SceneSwitch::push(PauseScene::new(ctx).unwrap());
             }
         }
 

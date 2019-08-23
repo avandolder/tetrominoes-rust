@@ -1,8 +1,8 @@
 mod board;
 mod cell;
-mod introstate;
-mod mainstate;
-mod pausestate;
+mod introscene;
+mod mainscene;
+mod pausescene;
 mod piece;
 mod world;
 
@@ -12,7 +12,7 @@ use std::path;
 use ggez::{event, Context, ContextBuilder, GameResult};
 use ggez_goodies::scene::{Scene, SceneStack};
 
-use introstate::IntroState;
+use introscene::IntroScene;
 use world::World;
 
 struct SceneManager {
@@ -56,7 +56,7 @@ fn main() -> GameResult {
         paused: false,
         score: 0,
     };
-    let st = Box::new(IntroState::new(ctx)?);
+    let st = Box::new(IntroScene::new(ctx)?);
     let sm = &mut SceneManager::new(ctx, world, st);
     event::run(ctx, event_loop, sm)
 }

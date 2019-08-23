@@ -8,15 +8,15 @@ use ggez_goodies::scene::{Scene, SceneSwitch};
 
 use crate::world::World;
 
-pub struct PauseState;
+pub struct PauseScene;
 
-impl PauseState {
-    pub fn new(_ctx: &mut Context) -> GameResult<PauseState> {
-        Ok(PauseState {})
+impl PauseScene {
+    pub fn new(_ctx: &mut Context) -> GameResult<PauseScene> {
+        Ok(PauseScene {})
     }
 }
 
-impl Scene<World, ()> for PauseState {
+impl Scene<World, ()> for PauseScene {
     fn update(&mut self, _world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
         if keyboard::is_key_pressed(ctx, KeyCode::Return) {
             SceneSwitch::Pop
