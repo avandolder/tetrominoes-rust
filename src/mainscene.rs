@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, DrawParam, Font, Text},
+    graphics::{self, DrawParam, Text},
     input::keyboard::{self, KeyCode},
     mint::Point2,
     timer, Context, GameResult,
@@ -133,11 +133,10 @@ impl Scene<World, ()> for MainScene {
     }
 
     fn draw(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
-        let font = Font::new(ctx, "/FreeMono.ttf")?;
-        let title = Text::new(("Tetrominoes", font, 12.));
-        let next = Text::new(("Next Piece", font, 12.));
+        let title = Text::new(("Tetrominoes", world.font, 12.));
+        let next = Text::new(("Next Piece", world.font, 12.));
         let next_dp = DrawParam::new().dest(Point2 { x: 0., y: 100. });
-        let score = Text::new((format!("Score: {}", world.score), font, 12.));
+        let score = Text::new((format!("Score: {}", world.score), world.font, 12.));
         let score_dp = DrawParam::new().dest(Point2 { x: 0., y: 50. });
         let next_piece_dp = DrawParam::new().dest(Point2 { x: 0., y: 120. });
         let board_dp = DrawParam::new().dest(Point2 { x: 100., y: 100. });

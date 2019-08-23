@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, Color, DrawMode, DrawParam, Font, Mesh, Rect, Text},
+    graphics::{self, Color, DrawMode, DrawParam, Mesh, Rect, Text},
     input::keyboard::{self, KeyCode},
     mint::Point2,
     Context, GameResult,
@@ -26,9 +26,8 @@ impl Scene<World, ()> for PauseScene {
         }
     }
 
-    fn draw(&mut self, _world: &mut World, ctx: &mut Context) -> GameResult {
-        let font = Font::new(ctx, "/FreeMono.ttf")?;
-        let msg = Text::new(("Paused\nPress Enter to resume", font, 12.));
+    fn draw(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
+        let msg = Text::new(("Paused\nPress Enter to resume", world.font, 12.));
         let msg_dp = DrawParam::new().dest(Point2 { x: 100., y: 50. });
 
         let Rect { w, h, .. } = graphics::screen_coordinates(ctx);

@@ -9,7 +9,7 @@ mod world;
 use std::env;
 use std::path;
 
-use ggez::{event, Context, ContextBuilder, GameResult};
+use ggez::{event, graphics::Font, Context, ContextBuilder, GameResult};
 use ggez_goodies::scene::{Scene, SceneStack};
 
 use introscene::IntroScene;
@@ -53,6 +53,7 @@ fn main() -> GameResult {
 
     let (ctx, event_loop) = &mut cb.build()?;
     let world = World {
+        font: Font::new(ctx, "/FreeMono.ttf")?,
         paused: false,
         score: 0,
     };

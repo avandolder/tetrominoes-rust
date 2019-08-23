@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, DrawParam, Font, Text},
+    graphics::{self, DrawParam, Text},
     input::keyboard::{self, KeyCode},
     Context, GameResult,
 };
@@ -25,9 +25,8 @@ impl Scene<World, ()> for IntroScene {
         }
     }
 
-    fn draw(&mut self, _world: &mut World, ctx: &mut Context) -> GameResult {
-        let font = Font::new(ctx, "/FreeMono.ttf")?;
-        let title = Text::new(("Tetrominoes\nPress Enter to start", font, 12.));
+    fn draw(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
+        let title = Text::new(("Tetrominoes\nPress Enter to start", world.font, 12.));
 
         graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
