@@ -17,8 +17,9 @@ impl PauseScene {
 }
 
 impl Scene<World, ()> for PauseScene {
-    fn update(&mut self, _world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
+    fn update(&mut self, world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
         if keyboard::is_key_pressed(ctx, KeyCode::Return) {
+            world.paused = false;
             SceneSwitch::Pop
         } else {
             SceneSwitch::None

@@ -121,7 +121,8 @@ impl Scene<World, ()> for MainScene {
                 self.key_dt = 0.;
             }
 
-            if keyboard::is_key_pressed(ctx, KeyCode::Escape) {
+            if keyboard::is_key_pressed(ctx, KeyCode::M) {
+                world.paused = true;
                 return SceneSwitch::push(PauseScene::new(ctx).unwrap());
             }
         }
