@@ -9,7 +9,6 @@ use ggez_goodies::scene::{Scene, SceneSwitch};
 use crate::board::{Board, BOARD_HEIGHT, BOARD_WIDTH};
 use crate::pausestate::PauseState;
 use crate::piece::{generate_pieces, make_ghost, Piece, PIECE_SIZE};
-use crate::state::{State, Transition};
 use crate::world::World;
 
 const KEY_WAIT: f64 = 0.2;

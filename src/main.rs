@@ -4,7 +4,6 @@ mod introstate;
 mod mainstate;
 mod pausestate;
 mod piece;
-mod state;
 mod world;
 
 use std::env;
@@ -14,7 +13,6 @@ use ggez::{event, Context, ContextBuilder, GameResult};
 use ggez_goodies::scene::{Scene, SceneStack};
 
 use introstate::IntroState;
-use state::StateManager;
 use world::World;
 
 struct SceneManager {

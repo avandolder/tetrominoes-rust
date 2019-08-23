@@ -6,7 +6,6 @@ use ggez::{
 };
 use ggez_goodies::scene::{Scene, SceneSwitch};
 
-use crate::state::{State, StateRef, Transition};
 use crate::world::World;
 
 pub struct PauseState;

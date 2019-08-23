@@ -6,7 +6,6 @@ use ggez::{
 use ggez_goodies::scene::{Scene, SceneSwitch};
 
 use crate::mainstate::MainState;
-use crate::state::{State, Transition};
 use crate::world::World;
 
 pub struct IntroState;
