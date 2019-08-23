@@ -4,11 +4,13 @@ use ggez::{
     mint::Point2,
     timer, Context, GameResult,
 };
+use ggez_goodies::scene::{Scene, SceneSwitch};
 
 use crate::board::{Board, BOARD_HEIGHT, BOARD_WIDTH};
 use crate::pausestate::PauseState;
 use crate::piece::{generate_pieces, make_ghost, Piece, PIECE_SIZE};
 use crate::state::{State, Transition};
+use crate::world::World;
 
 const KEY_WAIT: f64 = 0.2;
 const MOVE_WAIT: f64 = 1.;
@@ -21,7 +23,6 @@ pub struct MainState {
     ghost: Piece,
     move_dt: f64,
     key_dt: f64,
-    score: i32,
 }
 
 impl MainState {
@@ -37,7 +38,6 @@ impl MainState {
             ghost,
             move_dt: 0.,
             key_dt: KEY_WAIT,
-            score: 0,
         })
     }
 
@@ -65,14 +65,14 @@ impl MainState {
         self.ghost = self.drop_piece(make_ghost(&self.piece));
     }
 
-    fn set_piece(&mut self) {
+    fn set_piece(&mut self, world: &mut World) {
         if self.piece.row < 0 {
             println!("Game over!");
             std::process::exit(0);
         }
 
         self.board.set_piece(&self.piece);
-        self.score += self.board.clear_rows().pow(2);
+        world.score += self.board.clear_rows().pow(2);
         self.piece = self.piece_bag.pop().unwrap().prepare();
         if self.piece_bag.is_empty() {
             self.piece_bag = generate_pieces();
@@ -80,8 +80,8 @@ impl MainState {
     }
 }
 
-impl State for MainState {
-    fn update(&mut self, ctx: &mut Context) -> GameResult<Transition> {
+impl Scene<World, ()> for MainState {
+    fn update(&mut self, world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
         let dt = timer::duration_to_f64(timer::delta(ctx));
         self.move_dt += dt;
         if self.move_dt >= MOVE_WAIT
@@ -91,7 +91,7 @@ impl State for MainState {
 
             if self.board.collides(&self.piece) {
                 self.piece.row -= 1;
-                self.set_piece();
+                self.set_piece(world);
             }
 
             self.move_dt = 0.;
@@ -118,30 +118,31 @@ impl State for MainState {
 
             if keyboard::is_key_pressed(ctx, KeyCode::Space) {
                 self.piece = self.drop_piece(self.piece.clone());
-                self.set_piece();
+                self.set_piece(world);
                 self.key_dt = 0.;
             }
 
             if keyboard::is_key_pressed(ctx, KeyCode::Escape) {
-                return Transition::push(PauseState::new());
+                return SceneSwitch::push(PauseState::new(ctx).unwrap());
             }
         }
 
         self.update_ghost();
 
-        Ok(Transition::None)
+        SceneSwitch::None
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+    fn draw(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let title = Text::new(("Tetrominoes", font, 12.));
         let next = Text::new(("Next Piece", font, 12.));
         let next_dp = DrawParam::new().dest(Point2 { x: 0., y: 100. });
-        let score = Text::new((format!("Score: {}", self.score), font, 12.));
+        let score = Text::new((format!("Score: {}", world.score), font, 12.));
         let score_dp = DrawParam::new().dest(Point2 { x: 0., y: 50. });
         let next_piece_dp = DrawParam::new().dest(Point2 { x: 0., y: 120. });
         let board_dp = DrawParam::new().dest(Point2 { x: 100., y: 100. });
 
+        graphics::clear(ctx, graphics::BLACK);
         graphics::draw(ctx, &title, DrawParam::default())?;
         graphics::draw(ctx, &score, score_dp)?;
         graphics::draw(ctx, &next, next_dp)?;
@@ -149,6 +150,17 @@ impl State for MainState {
         graphics::draw(ctx, &self.board, board_dp)?;
         graphics::draw(ctx, &self.ghost, board_dp)?;
         graphics::draw(ctx, &self.piece, board_dp)?;
+
+        if !world.paused {
+            graphics::present(ctx)?;
+        }
+
         Ok(())
+    }
+
+    fn input(&mut self, _world: &mut World, _event: (), _started: bool) {}
+
+    fn name(&self) -> &str {
+        "Main"
     }
 }

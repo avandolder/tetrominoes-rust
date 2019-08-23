@@ -4,33 +4,29 @@ use ggez::{
     mint::Point2,
     Context, GameResult,
 };
+use ggez_goodies::scene::{Scene, SceneSwitch};
 
 use crate::state::{State, StateRef, Transition};
+use crate::world::World;
 
-pub struct PauseState {
-    prev_state: Option<StateRef>,
-}
+pub struct PauseState;
 
 impl PauseState {
-    pub fn new() -> PauseState {
-        PauseState { prev_state: None }
+    pub fn new(_ctx: &mut Context) -> GameResult<PauseState> {
+        Ok(PauseState {})
     }
 }
 
-impl State for PauseState {
-    fn on_start(&mut self, _ctx: &mut Context, prev_state: Option<StateRef>) {
-        self.prev_state = prev_state;
-    }
-
-    fn update(&mut self, ctx: &mut Context) -> GameResult<Transition> {
+impl Scene<World, ()> for PauseState {
+    fn update(&mut self, _world: &mut World, ctx: &mut Context) -> SceneSwitch<World, ()> {
         if keyboard::is_key_pressed(ctx, KeyCode::Return) {
-            Ok(Transition::Pop)
+            SceneSwitch::Pop
         } else {
-            Ok(Transition::None)
+            SceneSwitch::None
         }
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+    fn draw(&mut self, _world: &mut World, ctx: &mut Context) -> GameResult {
         let font = Font::new(ctx, "/FreeMono.ttf")?;
         let msg = Text::new(("Paused\nPress Enter to resume", font, 12.));
         let msg_dp = DrawParam::new().dest(Point2 { x: 100., y: 50. });
@@ -40,9 +36,18 @@ impl State for PauseState {
         let color = Color::new(0., 0., 0., 0.75);
         let mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), rect, color)?;
 
-        self.prev_state.clone().unwrap().borrow_mut().draw(ctx)?;
         graphics::draw(ctx, &mesh, DrawParam::default())?;
         graphics::draw(ctx, &msg, msg_dp)?;
-        Ok(())
+        graphics::present(ctx)
+    }
+
+    fn input(&mut self, _world: &mut World, _event: (), _started: bool) {}
+
+    fn name(&self) -> &str {
+        "Pause"
+    }
+
+    fn draw_previous(&self) -> bool {
+        true
     }
 }

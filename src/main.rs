@@ -5,14 +5,42 @@ mod mainstate;
 mod pausestate;
 mod piece;
 mod state;
+mod world;
 
 use std::env;
 use std::path;
 
-use ggez::{event, ContextBuilder, GameResult};
+use ggez::{event, Context, ContextBuilder, GameResult};
+use ggez_goodies::scene::{Scene, SceneStack};
 
 use introstate::IntroState;
 use state::StateManager;
+use world::World;
+
+struct SceneManager {
+    stack: SceneStack<World, ()>,
+}
+
+impl SceneManager {
+    pub fn new(ctx: &mut Context, world: World, scene: Box<dyn Scene<World, ()>>) -> SceneManager {
+        let mut stack = SceneStack::new(ctx, world);
+        stack.push(scene);
+
+        SceneManager { stack }
+    }
+}
+
+impl event::EventHandler for SceneManager {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
+        self.stack.update(ctx);
+        Ok(())
+    }
+
+    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        self.stack.draw(ctx);
+        Ok(())
+    }
+}
 
 fn main() -> GameResult {
     let resource_path = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
@@ -26,7 +54,11 @@ fn main() -> GameResult {
         .with_conf_file(true);
 
     let (ctx, event_loop) = &mut cb.build()?;
+    let world = World {
+        paused: false,
+        score: 0,
+    };
     let st = Box::new(IntroState::new(ctx)?);
-    let sm = &mut StateManager::new(ctx, st);
+    let sm = &mut SceneManager::new(ctx, world, st);
     event::run(ctx, event_loop, sm)
 }
