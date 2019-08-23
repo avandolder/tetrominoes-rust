@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 ggez = "0.5.1"
+ggez-goodies = "0.5.0"
 itertools = "0.8.0"
 rand = "0.7.0"
 
